@@ -1,25 +1,34 @@
 from flask import Blueprint, request, redirect
+from banco import conectar, devolver_conexao
 
 veiculos_bp = Blueprint("veiculos_bp", __name__)
 
-veiculos = []
-
 @veiculos_bp.route("/veiculos", methods=["GET", "POST"])
 def veiculos_page():
+    conn = conectar()
+    cursor = conn.cursor()
+
     if request.method == "POST":
         placa = request.form.get("placa")
         nome = request.form.get("nome")
 
-        veiculos.append({
-            "placa": placa,
-            "nome": nome
-        })
+        cursor.execute(
+            "INSERT INTO veiculos (placa, nome) VALUES (%s, %s)",
+            (placa, nome)
+        )
+        conn.commit()
 
         return redirect("/veiculos")
 
+    cursor.execute("SELECT placa, nome FROM veiculos")
+    dados = cursor.fetchall()
+
     lista_html = ""
-    for v in veiculos:
-        lista_html += f"<li>{v['placa']} - {v['nome']}</li>"
+    for v in dados:
+        lista_html += f"<li>{v[0]} - {v[1]}</li>"
+
+    cursor.close()
+    devolver_conexao(conn)
 
     return f"""
     <h1>🚗 Veículos</h1>
