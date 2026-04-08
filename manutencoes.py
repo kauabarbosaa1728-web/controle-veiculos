@@ -1,5 +1,6 @@
 from flask import Blueprint, request, redirect
 from banco import conectar, devolver_conexao
+from layout import layout
 
 manutencoes_bp = Blueprint("manutencoes_bp", __name__)
 
@@ -62,40 +63,37 @@ def manutencoes_page():
     cursor.close()
     devolver_conexao(conn)
 
-    return f"""
-    <h1>🔧 Manutenções</h1>
+    return layout(f"""
+        <h2>🔧 Manutenções</h2>
 
-    <form method="POST">
-        <input type="date" name="data" required>
-        <input type="number" step="0.01" name="valor" placeholder="Valor" required>
+        <form method="POST">
+            <input type="date" name="data" required>
+            <input type="number" step="0.01" name="valor" placeholder="Valor" required>
 
-        <select name="veiculo_id">
-            {opcoes}
-        </select>
+            <select name="veiculo_id">
+                {opcoes}
+            </select>
 
-        <input name="oficina" placeholder="Oficina">
-        <input name="descricao" placeholder="Descrição">
-        <input type="number" name="quantidade" placeholder="Qtd">
-        <input type="date" name="validade">
+            <input name="oficina" placeholder="Oficina">
+            <input name="descricao" placeholder="Descrição">
+            <input type="number" name="quantidade" placeholder="Qtd">
+            <input type="date" name="validade">
 
-        <button>Salvar</button>
-    </form>
+            <button>Salvar</button>
+        </form>
 
-    <h2>Histórico:</h2>
+        <h3>📋 Histórico de Manutenções:</h3>
 
-    <table border="1">
-        <tr>
-            <th>Data</th>
-            <th>Valor</th>
-            <th>Veículo</th>
-            <th>Oficina</th>
-            <th>Descrição</th>
-            <th>Qtd</th>
-            <th>Validade</th>
-        </tr>
-        {tabela}
-    </table>
-
-    <br>
-    <a href="/">⬅ Voltar</a>
-    """
+        <table>
+            <tr>
+                <th>Data</th>
+                <th>Valor</th>
+                <th>Veículo</th>
+                <th>Oficina</th>
+                <th>Descrição</th>
+                <th>Qtd</th>
+                <th>Validade</th>
+            </tr>
+            {tabela}
+        </table>
+    """)
