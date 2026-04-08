@@ -1,6 +1,7 @@
 from flask import Blueprint, request, redirect
 from banco import conectar, devolver_conexao
 from layout import layout
+from datetime import datetime
 
 manutencoes_bp = Blueprint("manutencoes_bp", __name__)
 
@@ -47,7 +48,24 @@ def manutencoes_page():
     dados = cursor.fetchall()
 
     tabela = ""
+    hoje = datetime.now().date()
+
     for d in dados:
+        validade = d[6]
+
+        cor = "#22c55e"  # verde
+        status = "OK"
+
+        if validade:
+            dias = (validade - hoje).days
+
+            if dias < 0:
+                cor = "#ef4444"  # vermelho
+                status = "VENCIDO"
+            elif dias <= 7:
+                cor = "#facc15"  # amarelo
+                status = "PRÓXIMO"
+
         tabela += f"""
         <tr>
             <td>{d[0]}</td>
@@ -57,6 +75,7 @@ def manutencoes_page():
             <td>{d[4]}</td>
             <td>{d[5]}</td>
             <td>{d[6]}</td>
+            <td style="color:{cor}; font-weight:bold;">{status}</td>
         </tr>
         """
 
@@ -82,7 +101,7 @@ def manutencoes_page():
             <button>Salvar</button>
         </form>
 
-        <h3>📋 Histórico de Manutenções:</h3>
+        <h3>📋 Histórico:</h3>
 
         <table>
             <tr>
@@ -93,6 +112,7 @@ def manutencoes_page():
                 <th>Descrição</th>
                 <th>Qtd</th>
                 <th>Validade</th>
+                <th>Status</th>
             </tr>
             {tabela}
         </table>
