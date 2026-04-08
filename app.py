@@ -1,9 +1,9 @@
 from flask import Flask
-
 from veiculos import veiculos_bp
 from manutencoes import manutencoes_bp
 from dashboard import dashboard_bp
 from banco import criar_banco
+from layout import layout  # 🔥 IMPORTANTE
 
 app = Flask(__name__)
 
@@ -15,21 +15,50 @@ app.register_blueprint(veiculos_bp)
 app.register_blueprint(manutencoes_bp)
 app.register_blueprint(dashboard_bp)
 
-# 🔥 HOME
+# 🔥 HOME ESTILO APP
 @app.route("/")
 def home():
-    return """
-    <h1>🚗 Sistema de Controle de Veículos</h1>
+    return layout("""
+        <div class="card" style="text-align:center;">
+            <h2>🚗 Controle de Veículos</h2>
+            <p>Gerencie tudo de forma simples e rápida</p>
+        </div>
 
-    <hr>
+        <div style="
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:15px;
+            margin-top:20px;
+        ">
 
-    <a href="/veiculos">🚗 Gerenciar Veículos</a><br><br>
-    <a href="/manutencoes">🔧 Registrar Manutenções</a><br><br>
-    <a href="/dashboard">📊 Ver Dashboard</a>
+            <a href="/veiculos" class="card" style="text-align:center;">
+                <h2>🚗</h2>
+                <p>Veículos</p>
+            </a>
 
-    <br><br>
-    <p>Sistema rodando online 🚀</p>
-    """
+            <a href="/manutencoes" class="card" style="text-align:center;">
+                <h2>🔧</h2>
+                <p>Manutenções</p>
+            </a>
+
+            <a href="/dashboard" class="card" style="text-align:center;">
+                <h2>📊</h2>
+                <p>Dashboard</p>
+            </a>
+
+            <div class="card" style="text-align:center;">
+                <h2>⚙️</h2>
+                <p>Configurações</p>
+            </div>
+
+        </div>
+
+        <br>
+
+        <div style="text-align:center; font-size:12px; opacity:0.6;">
+            Sistema rodando 🚀
+        </div>
+    """)
 
 # 🔥 RODAR LOCAL (Render usa gunicorn)
 if __name__ == "__main__":
