@@ -3,6 +3,7 @@ def layout(conteudo):
     <html>
     <head>
         <title>KBSISTEMAS AUTO</title>
+        <link rel="manifest" href="/static/manifest.json">
 
         <!-- 🔥 RESPONSIVO -->
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
