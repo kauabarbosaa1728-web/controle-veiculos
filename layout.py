@@ -4,88 +4,115 @@ def layout(conteudo):
     <head>
         <title>KBSISTEMAS AUTO</title>
 
+        <!-- 🔥 RESPONSIVO -->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
         <style>
             body {{
                 background: #0b0f19;
                 color: #e5e7eb;
                 font-family: Arial;
-                padding: 20px;
+                padding: 15px;
+                margin: 0;
             }}
 
             h1 {{
                 color: #3b82f6;
+                font-size: 22px;
+                text-align: center;
             }}
 
             h2, h3 {{
                 color: #60a5fa;
             }}
 
-            a {{
-                color: #3b82f6;
+            /* MENU */
+            .menu {{
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px;
+                margin-bottom: 15px;
+            }}
+
+            .menu a {{
+                background: #1e3a8a;
+                padding: 10px 12px;
+                border-radius: 8px;
+                color: white;
                 text-decoration: none;
-                display: block;
-                margin: 10px 0;
+                font-size: 14px;
                 font-weight: bold;
             }}
 
-            a:hover {{
-                color: #93c5fd;
+            .menu a:hover {{
+                background: #2563eb;
             }}
 
+            /* FORM */
             input, select {{
+                width: 100%;
                 padding: 10px;
-                margin: 5px;
+                margin: 6px 0;
                 background: #111827;
                 color: #e5e7eb;
                 border: 1px solid #3b82f6;
-                border-radius: 5px;
+                border-radius: 6px;
             }}
 
             button {{
+                width: 100%;
                 background: #3b82f6;
                 color: white;
                 border: none;
-                padding: 10px 15px;
-                cursor: pointer;
-                border-radius: 5px;
+                padding: 12px;
+                border-radius: 8px;
                 font-weight: bold;
+                margin-top: 10px;
             }}
 
             button:hover {{
                 background: #2563eb;
             }}
 
+            /* TABELA MOBILE */
             table {{
                 width: 100%;
-                border-collapse: collapse;
-                margin-top: 20px;
+                margin-top: 15px;
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+                font-size: 12px;
                 background: #111827;
             }}
 
             th, td {{
+                padding: 8px;
                 border: 1px solid #1f2937;
-                padding: 10px;
-                text-align: left;
             }}
 
             th {{
                 background: #1e3a8a;
-                color: #e5e7eb;
             }}
 
             tr:nth-child(even) {{
                 background: #0f172a;
             }}
 
-            hr {{
+            /* CARD (dashboard) */
+            .card {{
+                background: #111827;
+                padding: 15px;
+                border-radius: 10px;
+                margin: 10px 0;
                 border: 1px solid #1f2937;
-                margin: 20px 0;
             }}
 
-            .menu a {{
-                display: inline-block;
-                margin-right: 15px;
+            hr {{
+                border: 1px solid #1f2937;
+                margin: 15px 0;
             }}
+
         </style>
     </head>
 
@@ -94,10 +121,10 @@ def layout(conteudo):
         <h1>🚗 KBSISTEMAS AUTO</h1>
 
         <div class="menu">
-            <a href="/">🏠 Home</a>
-            <a href="/veiculos">🚗 Veículos</a>
-            <a href="/manutencoes">🔧 Manutenções</a>
-            <a href="/dashboard">📊 Dashboard</a>
+            <a href="/">🏠</a>
+            <a href="/veiculos">🚗</a>
+            <a href="/manutencoes">🔧</a>
+            <a href="/dashboard">📊</a>
         </div>
 
         <hr>
