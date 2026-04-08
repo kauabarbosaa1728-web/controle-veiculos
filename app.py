@@ -4,7 +4,7 @@ from banco import criar_banco
 
 app = Flask(__name__)
 
-# 🔥 CRIA TABELA AUTOMATICAMENTE
+# CRIA TABELA AUTOMATICAMENTE
 criar_banco()
 
 app.register_blueprint(veiculos_bp)
