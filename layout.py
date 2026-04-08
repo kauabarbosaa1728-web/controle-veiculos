@@ -114,6 +114,24 @@ def layout(conteudo):
 
     <body>
 
+        <!-- 🔥 SPLASH SCREEN -->
+        <div id="splash" style="
+            position:fixed;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            background:#0b0f19;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            flex-direction:column;
+            z-index:9999;
+        ">
+            <h1 style="color:#3b82f6;">🚗 KBS AUTO</h1>
+            <p>Carregando...</p>
+        </div>
+
         <h1>🚗 KBSISTEMAS AUTO</h1>
 
         <div class="menu">
@@ -147,6 +165,16 @@ def layout(conteudo):
             }};
 
             document.body.appendChild(btn);
+        }});
+        </script>
+
+        <!-- 🔥 SUMIR SPLASH -->
+        <script>
+        window.addEventListener("load", () => {{
+            setTimeout(() => {{
+                const splash = document.getElementById("splash");
+                if (splash) splash.style.display = "none";
+            }}, 1000);
         }});
         </script>
 
