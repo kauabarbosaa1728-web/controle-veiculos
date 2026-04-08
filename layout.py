@@ -27,7 +27,6 @@ def layout(conteudo):
                 color: #60a5fa;
             }}
 
-            /* MENU */
             .menu {{
                 display: flex;
                 flex-wrap: wrap;
@@ -50,7 +49,6 @@ def layout(conteudo):
                 background: #2563eb;
             }}
 
-            /* FORM */
             input, select {{
                 width: 100%;
                 padding: 10px;
@@ -76,7 +74,6 @@ def layout(conteudo):
                 background: #2563eb;
             }}
 
-            /* TABELA MOBILE */
             table {{
                 width: 100%;
                 margin-top: 15px;
@@ -100,7 +97,6 @@ def layout(conteudo):
                 background: #0f172a;
             }}
 
-            /* CARD (dashboard) */
             .card {{
                 background: #111827;
                 padding: 15px;
@@ -113,7 +109,6 @@ def layout(conteudo):
                 border: 1px solid #1f2937;
                 margin: 15px 0;
             }}
-
         </style>
     </head>
 
@@ -131,6 +126,29 @@ def layout(conteudo):
         <hr>
 
         {conteudo}
+
+        <!-- 🔥 BOTÃO INSTALAR APP -->
+        <script>
+        let deferredPrompt;
+
+        window.addEventListener('beforeinstallprompt', (e) => {{
+            e.preventDefault();
+            deferredPrompt = e;
+
+            const btn = document.createElement("button");
+            btn.innerText = "📲 Instalar App";
+            btn.style.marginTop = "15px";
+
+            btn.onclick = () => {{
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then(() => {{
+                    deferredPrompt = null;
+                }});
+            }};
+
+            document.body.appendChild(btn);
+        }});
+        </script>
 
     </body>
     </html>
