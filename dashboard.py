@@ -1,5 +1,6 @@
 from flask import Blueprint
 from banco import conectar, devolver_conexao
+from layout import layout
 
 dashboard_bp = Blueprint("dashboard_bp", __name__)
 
@@ -9,11 +10,11 @@ def dashboard():
     cursor = conn.cursor()
 
     try:
-        # TOTAL GERAL
+        # 💰 TOTAL GERAL
         cursor.execute("SELECT COALESCE(SUM(valor),0) FROM manutencoes")
         total_geral = cursor.fetchone()[0]
 
-        # TOTAL POR VEÍCULO
+        # 🚗 TOTAL POR VEÍCULO
         cursor.execute("""
         SELECT v.placa, COALESCE(SUM(m.valor),0)
         FROM veiculos v
@@ -24,26 +25,44 @@ def dashboard():
 
         dados = cursor.fetchall()
 
-        lista = ""
+        cards = ""
         for d in dados:
-            lista += f"<li>{d[0]} → R$ {d[1]}</li>"
+            cards += f"""
+            <div style="
+                background:#111827;
+                padding:15px;
+                margin:10px 0;
+                border:1px solid #3b82f6;
+                border-radius:8px;
+            ">
+                <strong>🚗 {d[0]}</strong><br>
+                💰 R$ {d[1]}
+            </div>
+            """
 
-        return f"""
-        <h1>📊 Dashboard</h1>
+        return layout(f"""
+            <h2>📊 Dashboard</h2>
 
-        <h2>💰 Total Geral: R$ {total_geral}</h2>
+            <div style="
+                background:#1e3a8a;
+                padding:20px;
+                border-radius:10px;
+                margin-bottom:20px;
+            ">
+                <h3>💰 Total Geral</h3>
+                <h1>R$ {total_geral}</h1>
+            </div>
 
-        <h3>🚗 Gastos por Veículo:</h3>
-        <ul>
-            {lista}
-        </ul>
+            <h3>🚗 Gastos por Veículo:</h3>
 
-        <br>
-        <a href="/">⬅ Voltar</a>
-        """
+            {cards}
+        """)
 
     except Exception as e:
-        return f"<h1>Erro no dashboard</h1><pre>{str(e)}</pre>"
+        return layout(f"""
+            <h2>❌ Erro no Dashboard</h2>
+            <pre>{str(e)}</pre>
+        """)
 
     finally:
         cursor.close()
