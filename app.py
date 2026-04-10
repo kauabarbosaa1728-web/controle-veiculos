@@ -10,9 +10,8 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# 🔥 PASTA DE UPLOAD
+# 🔥 PASTA DE UPLOAD (SEM CRIAR AUTOMATICAMENTE)
 UPLOAD_FOLDER = "static/uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # 🔥 CRIA TABELAS AUTOMATICAMENTE
 criar_banco()
@@ -38,9 +37,16 @@ def problemas():
         nome_arquivo = ""
 
         if foto:
-            nome_arquivo = secure_filename(f"{datetime.now().timestamp()}_{foto.filename}")
-            caminho = os.path.join(UPLOAD_FOLDER, nome_arquivo)
-            foto.save(caminho)
+            try:
+                nome_arquivo = secure_filename(f"{datetime.now().timestamp()}_{foto.filename}")
+                caminho = os.path.join(UPLOAD_FOLDER, nome_arquivo)
+
+                # 🔥 GARANTE QUE A PASTA EXISTE (AQUI DENTRO, NÃO NO INÍCIO)
+                os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+                foto.save(caminho)
+            except:
+                nome_arquivo = ""
 
         conn = conectar()
         cursor = conn.cursor()
@@ -98,7 +104,7 @@ def ver_problemas():
         <div style="background:#111;padding:15px;margin-bottom:15px;border-radius:10px;">
             <p><b>📅 {data}</b></p>
 
-            <img src="/static/uploads/{foto}" style="width:100%;max-width:300px;border-radius:10px;"><br><br>
+            {"<img src='/static/uploads/" + foto + "' style='width:100%;max-width:300px;border-radius:10px;'><br><br>" if foto else ""}
 
             <p>{descricao}</p>
         </div>
@@ -145,7 +151,6 @@ def home():
 
         </div>
 
-        <!-- 🚨 ENVIAR PROBLEMA -->
         <div style="margin-top:20px;">
             <a href="/problemas" class="card" style="text-align:center; display:block;">
                 <h2>🚨</h2>
@@ -153,7 +158,6 @@ def home():
             </a>
         </div>
 
-        <!-- 📸 VER PROBLEMAS -->
         <div style="margin-top:10px;">
             <a href="/ver_problemas" class="card" style="text-align:center; display:block;">
                 <h2>📸</h2>
@@ -168,6 +172,6 @@ def home():
         </div>
     """)
 
-# 🔥 RODAR LOCAL (Render usa gunicorn)
+# 🔥 RODAR LOCAL
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
