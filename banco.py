@@ -7,59 +7,77 @@ pool = ConnectionPool(conninfo=DATABASE_URL)
 
 
 def conectar():
-    return pool.getconn()
+    try:
+        return pool.getconn()
+    except Exception as e:
+        print("ERRO AO CONECTAR:", e)
+        return None
 
 
 def devolver_conexao(conn):
-    pool.putconn(conn)
+    try:
+        if conn:
+            pool.putconn(conn)
+    except Exception as e:
+        print("ERRO AO DEVOLVER CONEXÃO:", e)
 
 
 def criar_banco():
     conn = conectar()
+    if conn is None:
+        print("SEM CONEXÃO COM BANCO")
+        return
+
     cursor = conn.cursor()
 
-    # ================= 🚗 VEÍCULOS =================
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS veiculos (
-        id SERIAL PRIMARY KEY,
-        placa TEXT,
-        nome TEXT
-    )
-    """)
+    try:
+        # ================= 🚗 VEÍCULOS =================
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS veiculos (
+            id SERIAL PRIMARY KEY,
+            placa TEXT,
+            nome TEXT
+        )
+        """)
 
-    # ================= 🔧 MANUTENÇÕES =================
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS manutencoes (
-        id SERIAL PRIMARY KEY,
-        data DATE,
-        valor NUMERIC,
-        veiculo_id INTEGER,
-        oficina TEXT,
-        descricao TEXT,
-        quantidade INTEGER,
-        validade DATE
-    )
-    """)
+        # ================= 🔧 MANUTENÇÕES =================
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS manutencoes (
+            id SERIAL PRIMARY KEY,
+            data DATE,
+            valor NUMERIC,
+            veiculo_id INTEGER,
+            oficina TEXT,
+            descricao TEXT,
+            quantidade INTEGER,
+            validade DATE
+        )
+        """)
 
-    # ================= 🚨 PROBLEMAS =================
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS problemas (
-        id SERIAL PRIMARY KEY,
-        descricao TEXT,
-        foto TEXT,
-        data TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-    """)
+        # ================= 🚨 PROBLEMAS =================
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS problemas (
+            id SERIAL PRIMARY KEY,
+            descricao TEXT,
+            foto TEXT,
+            data TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """)
 
-    # ================= 👤 USUÁRIOS =================
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS usuarios (
-        id SERIAL PRIMARY KEY,
-        nome TEXT,
-        senha TEXT
-    )
-    """)
+        # ================= 👤 USUÁRIOS =================
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id SERIAL PRIMARY KEY,
+            nome TEXT,
+            senha TEXT
+        )
+        """)
 
-    conn.commit()
-    cursor.close()
-    devolver_conexao(conn)
+        conn.commit()
+
+    except Exception as e:
+        print("ERRO AO CRIAR TABELAS:", e)
+
+    finally:
+        cursor.close()
+        devolver_conexao(conn)
