@@ -6,6 +6,7 @@ from banco import criar_banco, conectar, devolver_conexao
 from layout import layout
 import os
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 
 app = Flask(__name__)
@@ -22,7 +23,7 @@ app.register_blueprint(dashboard_bp)
 # ================= 🔒 PROTEGER =================
 @app.before_request
 def proteger():
-    rotas_livres = ["/login", "/ping", "/usuarios"]  # 🔥 LIBEREI USUARIOS
+    rotas_livres = ["/login", "/ping", "/usuarios"]
 
     if request.path not in rotas_livres:
         if "user" not in session:
@@ -39,7 +40,8 @@ def login():
             conn = conectar()
             cursor = conn.cursor()
 
-            cursor.execute("SELECT id FROM usuarios WHERE nome=%s AND senha=%s", (nome, senha))
+            # 🔥 BUSCA USUARIO
+            cursor.execute("SELECT nome, senha FROM usuarios WHERE nome=%s", (nome,))
             user = cursor.fetchone()
 
             cursor.close()
@@ -49,11 +51,17 @@ def login():
             print("ERRO LOGIN:", e)
             return layout("<h2>❌ Erro no servidor (login)</h2>")
 
+        # 🔥 VALIDA SENHA CORRETAMENTE
         if user:
-            session["user"] = nome
-            return redirect("/")
+            nome_db, senha_db = user
+
+            if check_password_hash(senha_db, senha):
+                session["user"] = nome_db
+                return redirect("/")
+            else:
+                return layout("<h2>❌ Senha incorreta</h2>")
         else:
-            return layout("<h2>❌ Login inválido</h2>")
+            return layout("<h2>❌ Usuário não encontrado</h2>")
 
     return layout("""
         <h2>🔐 Login</h2>
@@ -173,8 +181,15 @@ def usuarios():
         senha = request.form.get("senha")
 
         try:
-            cursor.execute("INSERT INTO usuarios (nome, senha) VALUES (%s, %s)", (nome, senha))
+            # 🔥 AGORA SALVA COM HASH
+            senha_hash = generate_password_hash(senha)
+
+            cursor.execute(
+                "INSERT INTO usuarios (nome, senha) VALUES (%s, %s)",
+                (nome, senha_hash)
+            )
             conn.commit()
+
         except Exception as e:
             print("ERRO USUARIO:", e)
 
@@ -215,6 +230,3 @@ def home():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
-
-
-                 
