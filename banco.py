@@ -16,6 +16,7 @@ def criar_banco():
     conn = conectar()
     cursor = conn.cursor()
 
+    # 🔥 VEÍCULOS
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS veiculos (
         id SERIAL PRIMARY KEY,
@@ -24,6 +25,7 @@ def criar_banco():
     )
     """)
 
+    # 🔥 MANUTENÇÕES
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS manutencoes (
         id SERIAL PRIMARY KEY,
@@ -34,6 +36,16 @@ def criar_banco():
         descricao TEXT,
         quantidade INTEGER,
         validade DATE
+    )
+    """)
+
+    # 🔥 NOVA TABELA - PROBLEMAS (ESSA É A NOVA FUNÇÃO)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS problemas (
+        id SERIAL PRIMARY KEY,
+        descricao TEXT,
+        foto TEXT,
+        data TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """)
 
