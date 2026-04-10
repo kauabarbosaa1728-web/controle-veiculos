@@ -77,6 +77,36 @@ def problemas():
     """)
 
 
+# ================= 📸 VER PROBLEMAS =================
+@app.route("/ver_problemas")
+def ver_problemas():
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT descricao, foto, data FROM problemas ORDER BY id DESC")
+    dados = cursor.fetchall()
+
+    cursor.close()
+    devolver_conexao(conn)
+
+    html = "<h2>📸 Problemas Registrados</h2>"
+
+    for d in dados:
+        descricao, foto, data = d
+
+        html += f"""
+        <div style="background:#111;padding:15px;margin-bottom:15px;border-radius:10px;">
+            <p><b>📅 {data}</b></p>
+
+            <img src="/static/uploads/{foto}" style="width:100%;max-width:300px;border-radius:10px;"><br><br>
+
+            <p>{descricao}</p>
+        </div>
+        """
+
+    return layout(html)
+
+
 # ================= 🔥 HOME =================
 @app.route("/")
 def home():
@@ -115,11 +145,19 @@ def home():
 
         </div>
 
-        <!-- 🔥 NOVO BOTÃO -->
+        <!-- 🚨 ENVIAR PROBLEMA -->
         <div style="margin-top:20px;">
             <a href="/problemas" class="card" style="text-align:center; display:block;">
                 <h2>🚨</h2>
-                <p>Problemas</p>
+                <p>Enviar Problema</p>
+            </a>
+        </div>
+
+        <!-- 📸 VER PROBLEMAS -->
+        <div style="margin-top:10px;">
+            <a href="/ver_problemas" class="card" style="text-align:center; display:block;">
+                <h2>📸</h2>
+                <p>Ver Problemas</p>
             </a>
         </div>
 
