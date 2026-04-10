@@ -1,11 +1,18 @@
-from flask import Flask
+from flask import Flask, request, redirect
 from veiculos import veiculos_bp
 from manutencoes import manutencoes_bp
 from dashboard import dashboard_bp
-from banco import criar_banco
-from layout import layout  # 🔥 IMPORTANTE
+from banco import criar_banco, conectar, devolver_conexao
+from layout import layout
+import os
+from werkzeug.utils import secure_filename
+from datetime import datetime
 
 app = Flask(__name__)
+
+# 🔥 PASTA DE UPLOAD
+UPLOAD_FOLDER = "static/uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # 🔥 CRIA TABELAS AUTOMATICAMENTE
 criar_banco()
@@ -15,10 +22,60 @@ app.register_blueprint(veiculos_bp)
 app.register_blueprint(manutencoes_bp)
 app.register_blueprint(dashboard_bp)
 
-# ================= 🔥 ROTA PING (UPTIMEROBOT) =================
+# ================= 🔥 ROTA PING =================
 @app.route("/ping")
 def ping():
     return "ok", 200
+
+
+# ================= 🚨 PROBLEMAS =================
+@app.route("/problemas", methods=["GET", "POST"])
+def problemas():
+    if request.method == "POST":
+        descricao = request.form.get("descricao")
+        foto = request.files.get("foto")
+
+        nome_arquivo = ""
+
+        if foto:
+            nome_arquivo = secure_filename(f"{datetime.now().timestamp()}_{foto.filename}")
+            caminho = os.path.join(UPLOAD_FOLDER, nome_arquivo)
+            foto.save(caminho)
+
+        conn = conectar()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            INSERT INTO problemas (descricao, foto)
+            VALUES (%s, %s)
+        """, (descricao, nome_arquivo))
+
+        conn.commit()
+        cursor.close()
+        devolver_conexao(conn)
+
+        return redirect("/problemas")
+
+    return layout("""
+        <h2>🚨 Registrar Problema</h2>
+
+        <form method="POST" enctype="multipart/form-data">
+
+            <p>📸 Foto do problema:</p>
+            <input type="file" name="foto" accept="image/*" capture="environment" required>
+
+            <br><br>
+
+            <p>🧾 Descrição:</p>
+            <textarea name="descricao" placeholder="Ex: carro está sem óleo..." required style="width:100%;height:100px;"></textarea>
+
+            <br><br>
+
+            <button type="submit">🚀 Enviar</button>
+
+        </form>
+    """)
+
 
 # ================= 🔥 HOME =================
 @app.route("/")
@@ -56,6 +113,14 @@ def home():
                 <p>Configurações</p>
             </div>
 
+        </div>
+
+        <!-- 🔥 NOVO BOTÃO -->
+        <div style="margin-top:20px;">
+            <a href="/problemas" class="card" style="text-align:center; display:block;">
+                <h2>🚨</h2>
+                <p>Problemas</p>
+            </a>
         </div>
 
         <br>
