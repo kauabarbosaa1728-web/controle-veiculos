@@ -10,7 +10,7 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# 🔥 PASTA DE UPLOAD (SEM CRIAR AUTOMATICAMENTE)
+# 🔥 PASTA DE UPLOAD
 UPLOAD_FOLDER = "static/uploads"
 
 # 🔥 CRIA TABELAS AUTOMATICAMENTE
@@ -38,14 +38,14 @@ def problemas():
 
         if foto:
             try:
+                os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
                 nome_arquivo = secure_filename(f"{datetime.now().timestamp()}_{foto.filename}")
                 caminho = os.path.join(UPLOAD_FOLDER, nome_arquivo)
 
-                # 🔥 GARANTE QUE A PASTA EXISTE (AQUI DENTRO, NÃO NO INÍCIO)
-                os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
                 foto.save(caminho)
-            except:
+            except Exception as e:
+                print("ERRO AO SALVAR FOTO:", e)
                 nome_arquivo = ""
 
         conn = conectar()
@@ -89,26 +89,32 @@ def ver_problemas():
     conn = conectar()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT descricao, foto, data FROM problemas ORDER BY id DESC")
-    dados = cursor.fetchall()
+    try:
+        cursor.execute("SELECT descricao, foto, data FROM problemas ORDER BY id DESC")
+        dados = cursor.fetchall()
+    except Exception as e:
+        print("ERRO NO SELECT:", e)
+        dados = []
 
     cursor.close()
     devolver_conexao(conn)
 
     html = "<h2>📸 Problemas Registrados</h2>"
 
+    if not dados:
+        html += "<p>Nenhum problema registrado ainda.</p>"
+
     for d in dados:
         descricao, foto, data = d
 
-        html += f"""
-        <div style="background:#111;padding:15px;margin-bottom:15px;border-radius:10px;">
-            <p><b>📅 {data}</b></p>
+        html += "<div style='background:#111;padding:15px;margin-bottom:15px;border-radius:10px;'>"
+        html += f"<p><b>📅 {data}</b></p>"
 
-            {"<img src='/static/uploads/" + foto + "' style='width:100%;max-width:300px;border-radius:10px;'><br><br>" if foto else ""}
+        if foto and foto != "":
+            html += f"<img src='/static/uploads/{foto}' style='width:100%;max-width:300px;border-radius:10px;'><br><br>"
 
-            <p>{descricao}</p>
-        </div>
-        """
+        html += f"<p>{descricao}</p>"
+        html += "</div>"
 
     return layout(html)
 
