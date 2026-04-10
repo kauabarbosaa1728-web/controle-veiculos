@@ -22,7 +22,7 @@ app.register_blueprint(dashboard_bp)
 # ================= 🔒 PROTEGER =================
 @app.before_request
 def proteger():
-    rotas_livres = ["/login", "/ping"]
+    rotas_livres = ["/login", "/ping", "/usuarios"]  # 🔥 LIBEREI USUARIOS
 
     if request.path not in rotas_livres:
         if "user" not in session:
@@ -57,11 +57,10 @@ def login():
 
     return layout("""
         <h2>🔐 Login</h2>
-
         <form method="POST">
             <input name="nome" placeholder="Usuário" required><br><br>
             <input name="senha" type="password" placeholder="Senha" required><br><br>
-            <button type="submit">Entrar</button>
+            <button>Entrar</button>
         </form>
     """)
 
@@ -88,20 +87,15 @@ def problemas():
         if foto:
             try:
                 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
                 nome_arquivo = secure_filename(f"{datetime.now().timestamp()}_{foto.filename}")
                 caminho = os.path.join(UPLOAD_FOLDER, nome_arquivo)
-
                 foto.save(caminho)
             except Exception as e:
                 print("ERRO FOTO:", e)
-                nome_arquivo = ""
 
         conn = conectar()
         cursor = conn.cursor()
-
         cursor.execute("INSERT INTO problemas (descricao, foto) VALUES (%s, %s)", (descricao, nome_arquivo))
-
         conn.commit()
         cursor.close()
         devolver_conexao(conn)
@@ -110,9 +104,8 @@ def problemas():
 
     return layout("""
         <h2>🚨 Registrar Problema</h2>
-
         <form method="POST" enctype="multipart/form-data">
-            <input type="file" name="foto" accept="image/*" required><br><br>
+            <input type="file" name="foto" required><br><br>
             <textarea name="descricao" required></textarea><br><br>
             <button>Enviar</button>
         </form>
@@ -135,9 +128,7 @@ def ver_problemas():
 
     html = "<h2>📸 Problemas</h2>"
 
-    for d in dados:
-        id, descricao, foto, data = d
-
+    for id, descricao, foto, data in dados:
         html += "<div style='background:#111;padding:10px;margin:10px;'>"
         html += f"<p>{data}</p>"
 
@@ -165,7 +156,6 @@ def deletar_problema(id):
             os.remove(caminho)
 
     cursor.execute("DELETE FROM problemas WHERE id=%s", (id,))
-
     conn.commit()
     cursor.close()
     devolver_conexao(conn)
@@ -218,7 +208,7 @@ def home():
         <a href="/veiculos">Veículos</a><br>
         <a href="/manutencoes">Manutenções</a><br>
         <a href="/dashboard">Dashboard</a><br>
-        <a href="/usuarios">Usuários</a><br>
+        <a href="/usuarios">Criar Usuário</a><br>
         <a href="/problemas">Enviar Problema</a><br>
         <a href="/ver_problemas">Ver Problemas</a>
     """)
