@@ -10,18 +10,15 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# 🔥 PASTA DE UPLOAD
 UPLOAD_FOLDER = "static/uploads"
 
-# 🔥 CRIA TABELAS AUTOMATICAMENTE
 criar_banco()
 
-# 🔥 REGISTRA ROTAS
 app.register_blueprint(veiculos_bp)
 app.register_blueprint(manutencoes_bp)
 app.register_blueprint(dashboard_bp)
 
-# ================= 🔥 ROTA PING =================
+# ================= 🔥 PING =================
 @app.route("/ping")
 def ping():
     return "ok", 200
@@ -73,7 +70,7 @@ def problemas():
             <br><br>
 
             <p>🧾 Descrição:</p>
-            <textarea name="descricao" placeholder="Ex: carro está sem óleo..." required style="width:100%;height:100px;"></textarea>
+            <textarea name="descricao" required style="width:100%;height:100px;"></textarea>
 
             <br><br>
 
@@ -83,6 +80,31 @@ def problemas():
     """)
 
 
+# ================= ❌ DELETAR =================
+@app.route("/deletar_problema/<int:id>")
+def deletar_problema(id):
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT foto FROM problemas WHERE id=%s", (id,))
+    resultado = cursor.fetchone()
+
+    if resultado:
+        foto = resultado[0]
+        if foto:
+            caminho = os.path.join(UPLOAD_FOLDER, foto)
+            if os.path.exists(caminho):
+                os.remove(caminho)
+
+    cursor.execute("DELETE FROM problemas WHERE id=%s", (id,))
+
+    conn.commit()
+    cursor.close()
+    devolver_conexao(conn)
+
+    return redirect("/ver_problemas")
+
+
 # ================= 📸 VER PROBLEMAS =================
 @app.route("/ver_problemas")
 def ver_problemas():
@@ -90,10 +112,9 @@ def ver_problemas():
     cursor = conn.cursor()
 
     try:
-        cursor.execute("SELECT descricao, foto, data FROM problemas ORDER BY id DESC")
+        cursor.execute("SELECT id, descricao, foto, data FROM problemas ORDER BY id DESC")
         dados = cursor.fetchall()
-    except Exception as e:
-        print("ERRO NO SELECT:", e)
+    except:
         dados = []
 
     cursor.close()
@@ -102,19 +123,57 @@ def ver_problemas():
     html = "<h2>📸 Problemas Registrados</h2>"
 
     if not dados:
-        html += "<p>Nenhum problema registrado ainda.</p>"
+        html += "<p>Nenhum problema ainda.</p>"
 
     for d in dados:
-        descricao, foto, data = d
+        id, descricao, foto, data = d
 
         html += "<div style='background:#111;padding:15px;margin-bottom:15px;border-radius:10px;'>"
         html += f"<p><b>📅 {data}</b></p>"
 
-        if foto and foto != "":
+        if foto:
             html += f"<img src='/static/uploads/{foto}' style='width:100%;max-width:300px;border-radius:10px;'><br><br>"
 
         html += f"<p>{descricao}</p>"
+        html += f"<a href='/deletar_problema/{id}' style='color:red;'>❌ Excluir</a>"
         html += "</div>"
+
+    return layout(html)
+
+
+# ================= 👤 USUÁRIOS =================
+@app.route("/usuarios", methods=["GET", "POST"])
+def usuarios():
+    conn = conectar()
+    cursor = conn.cursor()
+
+    if request.method == "POST":
+        nome = request.form.get("nome")
+        senha = request.form.get("senha")
+
+        cursor.execute("INSERT INTO usuarios (nome, senha) VALUES (%s, %s)", (nome, senha))
+        conn.commit()
+
+    cursor.execute("SELECT id, nome FROM usuarios")
+    dados = cursor.fetchall()
+
+    html = """
+    <h2>👤 Usuários</h2>
+
+    <form method="POST">
+        <input name="nome" placeholder="Nome" required><br><br>
+        <input name="senha" placeholder="Senha" required><br><br>
+        <button type="submit">Criar</button>
+    </form>
+
+    <hr>
+    """
+
+    for u in dados:
+        html += f"<p>{u[1]}</p>"
+
+    cursor.close()
+    devolver_conexao(conn)
 
     return layout(html)
 
@@ -128,56 +187,30 @@ def home():
             <p>Gerencie tudo de forma simples e rápida</p>
         </div>
 
-        <div style="
-            display:grid;
-            grid-template-columns:1fr 1fr;
-            gap:15px;
-            margin-top:20px;
-        ">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:20px;">
 
-            <a href="/veiculos" class="card" style="text-align:center;">
-                <h2>🚗</h2>
-                <p>Veículos</p>
-            </a>
-
-            <a href="/manutencoes" class="card" style="text-align:center;">
-                <h2>🔧</h2>
-                <p>Manutenções</p>
-            </a>
-
-            <a href="/dashboard" class="card" style="text-align:center;">
-                <h2>📊</h2>
-                <p>Dashboard</p>
-            </a>
-
-            <div class="card" style="text-align:center;">
-                <h2>⚙️</h2>
-                <p>Configurações</p>
-            </div>
+            <a href="/veiculos" class="card"><h2>🚗</h2><p>Veículos</p></a>
+            <a href="/manutencoes" class="card"><h2>🔧</h2><p>Manutenções</p></a>
+            <a href="/dashboard" class="card"><h2>📊</h2><p>Dashboard</p></a>
+            <a href="/usuarios" class="card"><h2>👤</h2><p>Usuários</p></a>
 
         </div>
 
         <div style="margin-top:20px;">
-            <a href="/problemas" class="card" style="text-align:center; display:block;">
+            <a href="/problemas" class="card" style="display:block;text-align:center;">
                 <h2>🚨</h2>
                 <p>Enviar Problema</p>
             </a>
         </div>
 
         <div style="margin-top:10px;">
-            <a href="/ver_problemas" class="card" style="text-align:center; display:block;">
+            <a href="/ver_problemas" class="card" style="display:block;text-align:center;">
                 <h2>📸</h2>
                 <p>Ver Problemas</p>
             </a>
         </div>
-
-        <br>
-
-        <div style="text-align:center; font-size:12px; opacity:0.6;">
-            Sistema rodando 🚀
-        </div>
     """)
 
-# 🔥 RODAR LOCAL
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
