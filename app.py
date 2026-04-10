@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect
+from flask import Flask, request, redirect, session
 from veiculos import veiculos_bp
 from manutencoes import manutencoes_bp
 from dashboard import dashboard_bp
@@ -9,6 +9,7 @@ from werkzeug.utils import secure_filename
 from datetime import datetime
 
 app = Flask(__name__)
+app.secret_key = "segredo123"
 
 UPLOAD_FOLDER = "static/uploads"
 
@@ -18,11 +19,57 @@ app.register_blueprint(veiculos_bp)
 app.register_blueprint(manutencoes_bp)
 app.register_blueprint(dashboard_bp)
 
+# ================= 🔥 PROTEGER =================
+@app.before_request
+def proteger():
+    rotas_livres = ["/login", "/ping"]
+
+    if request.path not in rotas_livres:
+        if "user" not in session:
+            return redirect("/login")
+
+# ================= 🔐 LOGIN =================
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        nome = request.form.get("nome")
+        senha = request.form.get("senha")
+
+        conn = conectar()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT id FROM usuarios WHERE nome=%s AND senha=%s", (nome, senha))
+        user = cursor.fetchone()
+
+        cursor.close()
+        devolver_conexao(conn)
+
+        if user:
+            session["user"] = nome
+            return redirect("/")
+        else:
+            return layout("<h2>❌ Login inválido</h2>")
+
+    return layout("""
+        <h2>🔐 Login</h2>
+
+        <form method="POST">
+            <input name="nome" placeholder="Usuário" required><br><br>
+            <input name="senha" type="password" placeholder="Senha" required><br><br>
+            <button type="submit">Entrar</button>
+        </form>
+    """)
+
+# ================= 🚪 LOGOUT =================
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/login")
+
 # ================= 🔥 PING =================
 @app.route("/ping")
 def ping():
     return "ok", 200
-
 
 # ================= 🚨 PROBLEMAS =================
 @app.route("/problemas", methods=["GET", "POST"])
@@ -79,7 +126,6 @@ def problemas():
         </form>
     """)
 
-
 # ================= ❌ DELETAR =================
 @app.route("/deletar_problema/<int:id>")
 def deletar_problema(id):
@@ -103,7 +149,6 @@ def deletar_problema(id):
     devolver_conexao(conn)
 
     return redirect("/ver_problemas")
-
 
 # ================= 📸 VER PROBLEMAS =================
 @app.route("/ver_problemas")
@@ -139,7 +184,6 @@ def ver_problemas():
         html += "</div>"
 
     return layout(html)
-
 
 # ================= 👤 USUÁRIOS =================
 @app.route("/usuarios", methods=["GET", "POST"])
@@ -177,14 +221,16 @@ def usuarios():
 
     return layout(html)
 
-
 # ================= 🔥 HOME =================
 @app.route("/")
 def home():
-    return layout("""
+    return layout(f"""
+        <div style="text-align:right;">
+            <a href="/logout">🚪 Sair</a>
+        </div>
+
         <div class="card" style="text-align:center;">
             <h2>🚗 Controle de Veículos</h2>
-            <p>Gerencie tudo de forma simples e rápida</p>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:20px;">
@@ -210,7 +256,6 @@ def home():
             </a>
         </div>
     """)
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
