@@ -15,7 +15,12 @@ app.register_blueprint(veiculos_bp)
 app.register_blueprint(manutencoes_bp)
 app.register_blueprint(dashboard_bp)
 
-# 🔥 HOME ESTILO APP
+# ================= 🔥 ROTA PING (UPTIMEROBOT) =================
+@app.route("/ping")
+def ping():
+    return "ok", 200
+
+# ================= 🔥 HOME =================
 @app.route("/")
 def home():
     return layout("""
