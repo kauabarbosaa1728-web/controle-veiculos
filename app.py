@@ -19,7 +19,7 @@ app.register_blueprint(veiculos_bp)
 app.register_blueprint(manutencoes_bp)
 app.register_blueprint(dashboard_bp)
 
-# ================= 🔥 PROTEGER =================
+# ================= 🔒 PROTEGER =================
 @app.before_request
 def proteger():
     rotas_livres = ["/login", "/ping"]
@@ -35,14 +35,19 @@ def login():
         nome = request.form.get("nome")
         senha = request.form.get("senha")
 
-        conn = conectar()
-        cursor = conn.cursor()
+        try:
+            conn = conectar()
+            cursor = conn.cursor()
 
-        cursor.execute("SELECT id FROM usuarios WHERE nome=%s AND senha=%s", (nome, senha))
-        user = cursor.fetchone()
+            cursor.execute("SELECT id FROM usuarios WHERE nome=%s AND senha=%s", (nome, senha))
+            user = cursor.fetchone()
 
-        cursor.close()
-        devolver_conexao(conn)
+            cursor.close()
+            devolver_conexao(conn)
+
+        except Exception as e:
+            print("ERRO LOGIN:", e)
+            return layout("<h2>❌ Erro no servidor (login)</h2>")
 
         if user:
             session["user"] = nome
@@ -89,16 +94,13 @@ def problemas():
 
                 foto.save(caminho)
             except Exception as e:
-                print("ERRO AO SALVAR FOTO:", e)
+                print("ERRO FOTO:", e)
                 nome_arquivo = ""
 
         conn = conectar()
         cursor = conn.cursor()
 
-        cursor.execute("""
-            INSERT INTO problemas (descricao, foto)
-            VALUES (%s, %s)
-        """, (descricao, nome_arquivo))
+        cursor.execute("INSERT INTO problemas (descricao, foto) VALUES (%s, %s)", (descricao, nome_arquivo))
 
         conn.commit()
         cursor.close()
@@ -110,45 +112,11 @@ def problemas():
         <h2>🚨 Registrar Problema</h2>
 
         <form method="POST" enctype="multipart/form-data">
-
-            <p>📸 Foto do problema:</p>
-            <input type="file" name="foto" accept="image/*" capture="environment" required>
-
-            <br><br>
-
-            <p>🧾 Descrição:</p>
-            <textarea name="descricao" required style="width:100%;height:100px;"></textarea>
-
-            <br><br>
-
-            <button type="submit">🚀 Enviar</button>
-
+            <input type="file" name="foto" accept="image/*" required><br><br>
+            <textarea name="descricao" required></textarea><br><br>
+            <button>Enviar</button>
         </form>
     """)
-
-# ================= ❌ DELETAR =================
-@app.route("/deletar_problema/<int:id>")
-def deletar_problema(id):
-    conn = conectar()
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT foto FROM problemas WHERE id=%s", (id,))
-    resultado = cursor.fetchone()
-
-    if resultado:
-        foto = resultado[0]
-        if foto:
-            caminho = os.path.join(UPLOAD_FOLDER, foto)
-            if os.path.exists(caminho):
-                os.remove(caminho)
-
-    cursor.execute("DELETE FROM problemas WHERE id=%s", (id,))
-
-    conn.commit()
-    cursor.close()
-    devolver_conexao(conn)
-
-    return redirect("/ver_problemas")
 
 # ================= 📸 VER PROBLEMAS =================
 @app.route("/ver_problemas")
@@ -165,25 +133,44 @@ def ver_problemas():
     cursor.close()
     devolver_conexao(conn)
 
-    html = "<h2>📸 Problemas Registrados</h2>"
-
-    if not dados:
-        html += "<p>Nenhum problema ainda.</p>"
+    html = "<h2>📸 Problemas</h2>"
 
     for d in dados:
         id, descricao, foto, data = d
 
-        html += "<div style='background:#111;padding:15px;margin-bottom:15px;border-radius:10px;'>"
-        html += f"<p><b>📅 {data}</b></p>"
+        html += "<div style='background:#111;padding:10px;margin:10px;'>"
+        html += f"<p>{data}</p>"
 
         if foto:
-            html += f"<img src='/static/uploads/{foto}' style='width:100%;max-width:300px;border-radius:10px;'><br><br>"
+            html += f"<img src='/static/uploads/{foto}' width='200'><br>"
 
         html += f"<p>{descricao}</p>"
-        html += f"<a href='/deletar_problema/{id}' style='color:red;'>❌ Excluir</a>"
+        html += f"<a href='/deletar_problema/{id}'>❌ Excluir</a>"
         html += "</div>"
 
     return layout(html)
+
+# ================= ❌ DELETAR =================
+@app.route("/deletar_problema/<int:id>")
+def deletar_problema(id):
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT foto FROM problemas WHERE id=%s", (id,))
+    r = cursor.fetchone()
+
+    if r and r[0]:
+        caminho = os.path.join(UPLOAD_FOLDER, r[0])
+        if os.path.exists(caminho):
+            os.remove(caminho)
+
+    cursor.execute("DELETE FROM problemas WHERE id=%s", (id,))
+
+    conn.commit()
+    cursor.close()
+    devolver_conexao(conn)
+
+    return redirect("/ver_problemas")
 
 # ================= 👤 USUÁRIOS =================
 @app.route("/usuarios", methods=["GET", "POST"])
@@ -195,69 +182,46 @@ def usuarios():
         nome = request.form.get("nome")
         senha = request.form.get("senha")
 
-        cursor.execute("INSERT INTO usuarios (nome, senha) VALUES (%s, %s)", (nome, senha))
-        conn.commit()
+        try:
+            cursor.execute("INSERT INTO usuarios (nome, senha) VALUES (%s, %s)", (nome, senha))
+            conn.commit()
+        except Exception as e:
+            print("ERRO USUARIO:", e)
 
-    cursor.execute("SELECT id, nome FROM usuarios")
+    cursor.execute("SELECT nome FROM usuarios")
     dados = cursor.fetchall()
 
-    html = """
-    <h2>👤 Usuários</h2>
+    html = "<h2>👤 Usuários</h2>"
 
+    html += """
     <form method="POST">
-        <input name="nome" placeholder="Nome" required><br><br>
-        <input name="senha" placeholder="Senha" required><br><br>
-        <button type="submit">Criar</button>
+        <input name="nome" required>
+        <input name="senha" required>
+        <button>Criar</button>
     </form>
-
-    <hr>
     """
 
     for u in dados:
-        html += f"<p>{u[1]}</p>"
+        html += f"<p>{u[0]}</p>"
 
     cursor.close()
     devolver_conexao(conn)
 
     return layout(html)
 
-# ================= 🔥 HOME =================
+# ================= HOME =================
 @app.route("/")
 def home():
-    return layout(f"""
-        <div style="text-align:right;">
-            <a href="/logout">🚪 Sair</a>
-        </div>
-
-        <div class="card" style="text-align:center;">
-            <h2>🚗 Controle de Veículos</h2>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:20px;">
-
-            <a href="/veiculos" class="card"><h2>🚗</h2><p>Veículos</p></a>
-            <a href="/manutencoes" class="card"><h2>🔧</h2><p>Manutenções</p></a>
-            <a href="/dashboard" class="card"><h2>📊</h2><p>Dashboard</p></a>
-            <a href="/usuarios" class="card"><h2>👤</h2><p>Usuários</p></a>
-
-        </div>
-
-        <div style="margin-top:20px;">
-            <a href="/problemas" class="card" style="display:block;text-align:center;">
-                <h2>🚨</h2>
-                <p>Enviar Problema</p>
-            </a>
-        </div>
-
-        <div style="margin-top:10px;">
-            <a href="/ver_problemas" class="card" style="display:block;text-align:center;">
-                <h2>📸</h2>
-                <p>Ver Problemas</p>
-            </a>
-        </div>
+    return layout("""
+        <a href="/logout">Sair</a>
+        <h2>🚗 Sistema</h2>
+        <a href="/veiculos">Veículos</a><br>
+        <a href="/manutencoes">Manutenções</a><br>
+        <a href="/dashboard">Dashboard</a><br>
+        <a href="/usuarios">Usuários</a><br>
+        <a href="/problemas">Enviar Problema</a><br>
+        <a href="/ver_problemas">Ver Problemas</a>
     """)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
-
-        
