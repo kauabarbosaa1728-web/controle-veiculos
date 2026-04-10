@@ -5,8 +5,10 @@ DATABASE_URL = "postgresql://neondb_owner:npg_1jUl6SpdBMNg@ep-little-sky-anfi8c6
 
 pool = ConnectionPool(conninfo=DATABASE_URL)
 
+
 def conectar():
     return pool.getconn()
+
 
 def devolver_conexao(conn):
     pool.putconn(conn)
@@ -16,7 +18,7 @@ def criar_banco():
     conn = conectar()
     cursor = conn.cursor()
 
-    # 🔥 VEÍCULOS
+    # ================= 🚗 VEÍCULOS =================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS veiculos (
         id SERIAL PRIMARY KEY,
@@ -25,7 +27,7 @@ def criar_banco():
     )
     """)
 
-    # 🔥 MANUTENÇÕES
+    # ================= 🔧 MANUTENÇÕES =================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS manutencoes (
         id SERIAL PRIMARY KEY,
@@ -39,13 +41,22 @@ def criar_banco():
     )
     """)
 
-    # 🔥 NOVA TABELA - PROBLEMAS (ESSA É A NOVA FUNÇÃO)
+    # ================= 🚨 PROBLEMAS =================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS problemas (
         id SERIAL PRIMARY KEY,
         descricao TEXT,
         foto TEXT,
         data TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
+    # ================= 👤 USUÁRIOS =================
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS usuarios (
+        id SERIAL PRIMARY KEY,
+        nome TEXT,
+        senha TEXT
     )
     """)
 
