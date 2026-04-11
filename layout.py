@@ -74,28 +74,30 @@ def layout(conteudo):
                 box-shadow: 0 0 10px rgba(0,0,0,0.5);
             }}
 
-            /* 🔥 LISTA BONITA */
-            .lista {{
-                display: flex;
-                flex-direction: column;
-                gap: 12px;
-                margin-top: 15px;
+            /* 🔥 BOTÕES GRANDES (NOVO) */
+            .grid-botoes {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                gap: 15px;
+                margin-top: 20px;
             }}
 
-            .lista a {{
-                background: #020617;
-                padding: 14px;
-                border-radius: 10px;
+            .grid-botoes a {{
+                background: linear-gradient(145deg, #1e3a8a, #2563eb);
+                padding: 25px 10px;
+                border-radius: 15px;
+                text-align: center;
                 text-decoration: none;
-                color: #e5e7eb;
-                border: 1px solid #1f2937;
+                color: white;
                 font-weight: bold;
+                font-size: 16px;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.4);
                 transition: 0.2s;
             }}
 
-            .lista a:hover {{
-                background: #1e3a8a;
-                transform: translateX(6px);
+            .grid-botoes a:hover {{
+                transform: scale(1.08);
+                background: linear-gradient(145deg, #2563eb, #3b82f6);
             }}
 
             /* FORM */
