@@ -12,7 +12,7 @@ from datetime import datetime
 app = Flask(__name__)
 app.secret_key = "segredo123"
 
-UPLOAD_FOLDER = "static/uploads"
+UPLOAD_FOLDER = os.path.join("static", "uploads")
 
 criar_banco()
 
@@ -23,7 +23,7 @@ app.register_blueprint(dashboard_bp)
 # ================= 🔒 PROTEGER =================
 @app.before_request
 def proteger():
-    rotas_livres = ["/login", "/ping", "/usuarios"]
+    rotas_livres = ["/login", "/ping"]
 
     if request.path not in rotas_livres:
         if "user" not in session:
@@ -40,7 +40,6 @@ def login():
             conn = conectar()
             cursor = conn.cursor()
 
-            # 🔥 BUSCA USUARIO
             cursor.execute("SELECT nome, senha FROM usuarios WHERE nome=%s", (nome,))
             user = cursor.fetchone()
 
@@ -51,7 +50,6 @@ def login():
             print("ERRO LOGIN:", e)
             return layout("<h2>❌ Erro no servidor (login)</h2>")
 
-        # 🔥 VALIDA SENHA CORRETAMENTE
         if user:
             nome_db, senha_db = user
 
@@ -173,6 +171,9 @@ def deletar_problema(id):
 # ================= 👤 USUÁRIOS =================
 @app.route("/usuarios", methods=["GET", "POST"])
 def usuarios():
+    if "user" not in session:
+        return redirect("/login")
+
     conn = conectar()
     cursor = conn.cursor()
 
@@ -181,7 +182,6 @@ def usuarios():
         senha = request.form.get("senha")
 
         try:
-            # 🔥 AGORA SALVA COM HASH
             senha_hash = generate_password_hash(senha)
 
             cursor.execute(
@@ -230,3 +230,4 @@ def home():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+         
