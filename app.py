@@ -44,7 +44,15 @@ def login():
             conn = conectar()
             cursor = conn.cursor()
 
-            cursor.execute("SELECT nome, senha FROM usuarios WHERE nome=%s", (nome,))
+            cursor.execute("""
+                SELECT nome, senha, cargo,
+                       pode_veiculos,
+                       pode_manutencoes,
+                       pode_dashboard,
+                       pode_usuarios
+                FROM usuarios
+                WHERE nome=%s
+            """, (nome,))
             user = cursor.fetchone()
 
             cursor.close()
@@ -55,10 +63,22 @@ def login():
             return layout("<h2>❌ Erro no servidor (login)</h2>")
 
         if user:
-            nome_db, senha_db = user
+            (nome_db, senha_db, cargo,
+             pode_veiculos,
+             pode_manutencoes,
+             pode_dashboard,
+             pode_usuarios) = user
 
             if check_password_hash(senha_db, senha):
                 session["user"] = nome_db
+                session["cargo"] = cargo
+
+                # 🔥 PERMISSÕES
+                session["pode_veiculos"] = pode_veiculos
+                session["pode_manutencoes"] = pode_manutencoes
+                session["pode_dashboard"] = pode_dashboard
+                session["pode_usuarios"] = pode_usuarios
+
                 return redirect("/")
             else:
                 return layout("<h2>❌ Senha incorreta</h2>")
@@ -175,8 +195,8 @@ def deletar_problema(id):
 # ================= 👤 USUÁRIOS =================
 @app.route("/usuarios", methods=["GET", "POST"])
 def usuarios():
-    if "user" not in session:
-        return redirect("/login")
+    if session.get("cargo") != "admin":
+        return "<h1 style='color:red;text-align:center;'>🚫 Apenas admin</h1>"
 
     conn = conectar()
     cursor = conn.cursor()
@@ -188,30 +208,32 @@ def usuarios():
         try:
             senha_hash = generate_password_hash(senha)
 
-            cursor.execute(
-                "INSERT INTO usuarios (nome, senha) VALUES (%s, %s)",
-                (nome, senha_hash)
-            )
+            cursor.execute("""
+                INSERT INTO usuarios 
+                (nome, senha, cargo)
+                VALUES (%s, %s, 'usuario')
+            """, (nome, senha_hash))
+
             conn.commit()
 
         except Exception as e:
             print("ERRO USUARIO:", e)
 
-    cursor.execute("SELECT nome FROM usuarios")
+    cursor.execute("SELECT nome, cargo FROM usuarios")
     dados = cursor.fetchall()
 
     html = "<h2>👤 Usuários</h2>"
 
     html += """
     <form method="POST">
-        <input name="nome" required>
-        <input name="senha" required>
+        <input name="nome" placeholder="Usuário" required>
+        <input name="senha" placeholder="Senha" required>
         <button>Criar</button>
     </form>
     """
 
     for u in dados:
-        html += f"<p>{u[0]}</p>"
+        html += f"<p>{u[0]} - ({u[1]})</p>"
 
     cursor.close()
     devolver_conexao(conn)
@@ -224,12 +246,15 @@ def home():
     return layout("""
         <a href="/logout">Sair</a>
         <h2>🚗 Sistema</h2>
-        <a href="/veiculos">Veículos</a><br>
-        <a href="/manutencoes">Manutenções</a><br>
-        <a href="/dashboard">Dashboard</a><br>
-        <a href="/usuarios">Criar Usuário</a><br>
-        <a href="/problemas">Enviar Problema</a><br>
-        <a href="/ver_problemas">Ver Problemas</a>
+
+        <div class="grid-botoes">
+            <a href="/veiculos">🚗 Veículos</a>
+            <a href="/manutencoes">🔧 Manutenções</a>
+            <a href="/dashboard">📊 Dashboard</a>
+            <a href="/usuarios">👤 Usuários</a>
+            <a href="/problemas">⚠️ Problemas</a>
+            <a href="/ver_problemas">📋 Ver Problemas</a>
+        </div>
     """)
 
 if __name__ == "__main__":
