@@ -71,47 +71,49 @@ def criar_banco():
         """)
 
         # ================= 👤 USUÁRIOS =================
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS usuarios (
-            id SERIAL PRIMARY KEY,
-            nome TEXT UNIQUE,
-            senha TEXT,
-            cargo TEXT DEFAULT 'usuario',
+       cursor.execute("""
+CREATE TABLE IF NOT EXISTS usuarios (
+    id SERIAL PRIMARY KEY,
+    nome TEXT UNIQUE,
+    senha TEXT,
+    cargo TEXT DEFAULT 'usuario',
 
-            pode_veiculos INTEGER DEFAULT 1,
-            pode_manutencoes INTEGER DEFAULT 1,
-            pode_dashboard INTEGER DEFAULT 1,
-            pode_usuarios INTEGER DEFAULT 0
-        )
-        """)
+    pode_veiculos INTEGER DEFAULT 1,
+    pode_manutencoes INTEGER DEFAULT 1,
+    pode_dashboard INTEGER DEFAULT 1,
+    pode_usuarios INTEGER DEFAULT 0,
 
-        # 🔥 GARANTE COLUNAS (caso já exista tabela antiga)
-        cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS cargo TEXT DEFAULT 'usuario'")
-        cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_veiculos INTEGER DEFAULT 1")
-        cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_manutencoes INTEGER DEFAULT 1")
-        cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_dashboard INTEGER DEFAULT 1")
-        cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_usuarios INTEGER DEFAULT 0")
+    pode_problemas INTEGER DEFAULT 0,
+    pode_ver_problemas INTEGER DEFAULT 0
+)
+""")
 
-        # 🔥 VERIFICA ADMIN
-        cursor.execute("SELECT * FROM usuarios WHERE nome='admin'")
-        admin = cursor.fetchone()
+# 🔥 GARANTE COLUNAS (caso tabela já exista)
+cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS cargo TEXT DEFAULT 'usuario'")
+cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_veiculos INTEGER DEFAULT 1")
+cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_manutencoes INTEGER DEFAULT 1")
+cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_dashboard INTEGER DEFAULT 1")
+cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_usuarios INTEGER DEFAULT 0")
 
-        if not admin:
-            senha_hash = generate_password_hash("123")
+# 🔥 NOVAS PERMISSÕES
+cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_problemas INTEGER DEFAULT 0")
+cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_ver_problemas INTEGER DEFAULT 0")
 
-            cursor.execute("""
-                INSERT INTO usuarios 
-                (nome, senha, cargo, pode_veiculos, pode_manutencoes, pode_dashboard, pode_usuarios)
-                VALUES (%s, %s, %s, 1, 1, 1, 1)
-            """, ("admin", senha_hash, "admin"))
+# 🔥 VERIFICA ADMIN
+cursor.execute("SELECT * FROM usuarios WHERE nome='admin'")
+admin = cursor.fetchone()
 
-            print("✅ ADMIN CRIADO: login=admin senha=123")
+if not admin:
+    senha_hash = generate_password_hash("123")
 
-        conn.commit()
+    cursor.execute("""
+        INSERT INTO usuarios 
+        (nome, senha, cargo,
+         pode_veiculos, pode_manutencoes, pode_dashboard, pode_usuarios,
+         pode_problemas, pode_ver_problemas)
+        VALUES (%s, %s, %s, 1, 1, 1, 1, 1, 1)
+    """, ("admin", senha_hash, "admin"))
 
-    except Exception as e:
-        print("ERRO AO CRIAR TABELAS:", e)
+    print("✅ ADMIN CRIADO: login=admin senha=123")
 
-    finally:
-        cursor.close()
-        devolver_conexao(conn)
+conn.commit()
