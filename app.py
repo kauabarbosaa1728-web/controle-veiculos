@@ -199,7 +199,7 @@ def deletar_problema(id):
 # ================= 👤 USUÁRIOS =================
 @app.route("/usuarios", methods=["GET", "POST"])
 def usuarios():
- if session.get("user") != "admin":
+    if session.get("user") != "admin":
         return "<h1 style='color:red;text-align:center;'>🚫 Apenas admin</h1>"
 
     conn = conectar()
@@ -249,7 +249,7 @@ def usuarios():
 
     html = "<h2>👤 Usuários</h2>"
 
-    # 🔥 FORMULÁRIO COM CHECKBOX
+    # 🔥 FORMULÁRIO
     html += """
     <div class="card">
         <form method="POST">
@@ -266,7 +266,7 @@ def usuarios():
     </div>
     """
 
-    # 🔥 LISTA DE USUÁRIOS
+    # 🔥 LISTA
     html += "<div class='card'><h3>Lista</h3>"
 
     for u in dados:
@@ -286,7 +286,6 @@ def usuarios():
     devolver_conexao(conn)
 
     return layout(html)
-
 # ================= HOME =================
 @app.route("/")
 def home():
