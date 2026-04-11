@@ -4,7 +4,6 @@ def layout(conteudo):
     <head>
         <title>KBSISTEMAS AUTO</title>
         <link rel="manifest" href="/static/manifest.json">
-
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
         <style>
@@ -17,24 +16,23 @@ def layout(conteudo):
 
             h1 {{
                 color: #3b82f6;
-                font-size: 22px;
                 text-align: center;
                 margin: 10px 0;
             }}
 
-            h2, h3 {{
+            h2 {{
                 color: #60a5fa;
+                text-align: center;
             }}
 
             /* 🔥 TOPO */
             .topo {{
-                text-align: center;
-                padding: 10px;
                 background: #020617;
+                padding: 15px;
                 border-bottom: 1px solid #1f2937;
             }}
 
-            /* 🔥 ABAS */
+            /* 🔥 MENU */
             .menu {{
                 display: flex;
                 justify-content: center;
@@ -51,7 +49,6 @@ def layout(conteudo):
                 border-radius: 8px;
                 color: white;
                 text-decoration: none;
-                font-size: 14px;
                 font-weight: bold;
                 transition: 0.2s;
             }}
@@ -61,21 +58,44 @@ def layout(conteudo):
                 transform: scale(1.05);
             }}
 
-            /* 🔥 CONTEÚDO CENTRAL */
+            /* 🔥 CONTEÚDO */
             .conteudo {{
-                max-width: 1000px;
+                max-width: 900px;
                 margin: auto;
                 padding: 20px;
             }}
 
-            /* 🔥 CARDS */
+            /* 🔥 CARD */
             .card {{
                 background: #111827;
                 padding: 20px;
-                border-radius: 10px;
-                margin-bottom: 15px;
+                border-radius: 12px;
                 border: 1px solid #1f2937;
                 box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            }}
+
+            /* 🔥 LISTA BONITA */
+            .lista {{
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                margin-top: 15px;
+            }}
+
+            .lista a {{
+                background: #020617;
+                padding: 14px;
+                border-radius: 10px;
+                text-decoration: none;
+                color: #e5e7eb;
+                border: 1px solid #1f2937;
+                font-weight: bold;
+                transition: 0.2s;
+            }}
+
+            .lista a:hover {{
+                background: #1e3a8a;
+                transform: translateX(6px);
             }}
 
             /* FORM */
@@ -129,11 +149,6 @@ def layout(conteudo):
             tr:nth-child(even) {{
                 background: #0f172a;
             }}
-
-            hr {{
-                border: 1px solid #1f2937;
-                margin: 15px 0;
-            }}
         </style>
     </head>
 
@@ -153,7 +168,7 @@ def layout(conteudo):
             flex-direction:column;
             z-index:9999;
         ">
-            <h1 style="color:#3b82f6;">🚗 KBS AUTO</h1>
+            <h1>🚗 KBS AUTO</h1>
             <p>Carregando...</p>
         </div>
 
@@ -162,7 +177,7 @@ def layout(conteudo):
             <h1>🚗 KBSISTEMAS AUTO</h1>
         </div>
 
-        <!-- 🔥 MENU EM ABAS -->
+        <!-- 🔥 MENU -->
         <div class="menu">
             <a href="/">🏠 Início</a>
             <a href="/veiculos">🚗 Veículos</a>
@@ -174,33 +189,8 @@ def layout(conteudo):
 
         <!-- 🔥 CONTEÚDO -->
         <div class="conteudo">
-            <div class="card">
-                {conteudo}
-            </div>
+            {conteudo}
         </div>
-
-        <!-- 🔥 INSTALAR APP -->
-        <script>
-        let deferredPrompt;
-
-        window.addEventListener('beforeinstallprompt', (e) => {{
-            e.preventDefault();
-            deferredPrompt = e;
-
-            const btn = document.createElement("button");
-            btn.innerText = "📲 Instalar App";
-            btn.style.margin = "20px";
-
-            btn.onclick = () => {{
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then(() => {{
-                    deferredPrompt = null;
-                }});
-            }};
-
-            document.body.appendChild(btn);
-        }});
-        </script>
 
         <!-- 🔥 SPLASH SOME -->
         <script>
