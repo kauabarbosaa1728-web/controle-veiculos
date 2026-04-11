@@ -1,5 +1,6 @@
 import psycopg2
 from psycopg2 import pool
+from werkzeug.security import generate_password_hash
 
 DATABASE_URL = "postgresql://neondb_owner:npg_1jUl6SpdBMNg@ep-little-sky-anfi8c6a-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require"
 
@@ -26,7 +27,7 @@ def devolver_conexao(conn):
     except Exception as e:
         print("ERRO AO DEVOLVER CONEXÃO:", e)
 
-# 🔥 CRIAR TABELAS
+# 🔥 CRIAR TABELAS + ADMIN
 def criar_banco():
     conn = conectar()
     if conn is None:
@@ -36,6 +37,7 @@ def criar_banco():
     cursor = conn.cursor()
 
     try:
+        # ================= 🚗 VEÍCULOS =================
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS veiculos (
             id SERIAL PRIMARY KEY,
@@ -44,6 +46,7 @@ def criar_banco():
         )
         """)
 
+        # ================= 🔧 MANUTENÇÕES =================
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS manutencoes (
             id SERIAL PRIMARY KEY,
@@ -57,6 +60,7 @@ def criar_banco():
         )
         """)
 
+        # ================= 🚨 PROBLEMAS =================
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS problemas (
             id SERIAL PRIMARY KEY,
@@ -66,13 +70,28 @@ def criar_banco():
         )
         """)
 
+        # ================= 👤 USUÁRIOS =================
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS usuarios (
             id SERIAL PRIMARY KEY,
-            nome TEXT,
+            nome TEXT UNIQUE,
             senha TEXT
         )
         """)
+
+        # 🔥 VERIFICA SE EXISTE ADMIN
+        cursor.execute("SELECT * FROM usuarios WHERE nome='admin'")
+        admin = cursor.fetchone()
+
+        if not admin:
+            senha_hash = generate_password_hash("123")
+
+            cursor.execute(
+                "INSERT INTO usuarios (nome, senha) VALUES (%s, %s)",
+                ("admin", senha_hash)
+            )
+
+            print("✅ ADMIN CRIADO: login=admin senha=123")
 
         conn.commit()
 
