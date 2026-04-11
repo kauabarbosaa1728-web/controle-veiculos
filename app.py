@@ -195,7 +195,7 @@ def deletar_problema(id):
 # ================= 👤 USUÁRIOS =================
 @app.route("/usuarios", methods=["GET", "POST"])
 def usuarios():
-    if session.get("cargo") != "admin":
+ if session.get("user") != "admin":
         return "<h1 style='color:red;text-align:center;'>🚫 Apenas admin</h1>"
 
     conn = conectar()
@@ -205,35 +205,78 @@ def usuarios():
         nome = request.form.get("nome")
         senha = request.form.get("senha")
 
+        # 🔥 PERMISSÕES
+        pode_veiculos = 1 if request.form.get("pode_veiculos") else 0
+        pode_manutencoes = 1 if request.form.get("pode_manutencoes") else 0
+        pode_dashboard = 1 if request.form.get("pode_dashboard") else 0
+        pode_usuarios = 1 if request.form.get("pode_usuarios") else 0
+
         try:
             senha_hash = generate_password_hash(senha)
 
             cursor.execute("""
                 INSERT INTO usuarios 
-                (nome, senha, cargo)
-                VALUES (%s, %s, 'usuario')
-            """, (nome, senha_hash))
+                (nome, senha, cargo, 
+                 pode_veiculos, pode_manutencoes, 
+                 pode_dashboard, pode_usuarios)
+                VALUES (%s, %s, 'usuario', %s, %s, %s, %s)
+            """, (
+                nome, senha_hash,
+                pode_veiculos,
+                pode_manutencoes,
+                pode_dashboard,
+                pode_usuarios
+            ))
 
             conn.commit()
 
         except Exception as e:
             print("ERRO USUARIO:", e)
 
-    cursor.execute("SELECT nome, cargo FROM usuarios")
+    cursor.execute("""
+        SELECT nome, cargo, 
+               pode_veiculos, 
+               pode_manutencoes, 
+               pode_dashboard, 
+               pode_usuarios 
+        FROM usuarios
+    """)
     dados = cursor.fetchall()
 
     html = "<h2>👤 Usuários</h2>"
 
+    # 🔥 FORMULÁRIO COM CHECKBOX
     html += """
-    <form method="POST">
-        <input name="nome" placeholder="Usuário" required>
-        <input name="senha" placeholder="Senha" required>
-        <button>Criar</button>
-    </form>
+    <div class="card">
+        <form method="POST">
+            <input name="nome" placeholder="Usuário" required>
+            <input name="senha" placeholder="Senha" required>
+
+            <label><input type="checkbox" name="pode_veiculos"> Veículos</label><br>
+            <label><input type="checkbox" name="pode_manutencoes"> Manutenções</label><br>
+            <label><input type="checkbox" name="pode_dashboard"> Dashboard</label><br>
+            <label><input type="checkbox" name="pode_usuarios"> Usuários</label><br><br>
+
+            <button>Criar Usuário</button>
+        </form>
+    </div>
     """
 
+    # 🔥 LISTA DE USUÁRIOS
+    html += "<div class='card'><h3>Lista</h3>"
+
     for u in dados:
-        html += f"<p>{u[0]} - ({u[1]})</p>"
+        html += f"""
+        <p>
+        👤 {u[0]} ({u[1]})<br>
+        🚗 Veículos: {u[2]} |
+        🔧 Manutenções: {u[3]} |
+        📊 Dashboard: {u[4]} |
+        👤 Usuários: {u[5]}
+        </p>
+        """
+
+    html += "</div>"
 
     cursor.close()
     devolver_conexao(conn)
