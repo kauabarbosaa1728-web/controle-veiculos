@@ -75,21 +75,35 @@ def criar_banco():
         CREATE TABLE IF NOT EXISTS usuarios (
             id SERIAL PRIMARY KEY,
             nome TEXT UNIQUE,
-            senha TEXT
+            senha TEXT,
+            cargo TEXT DEFAULT 'usuario',
+
+            pode_veiculos INTEGER DEFAULT 1,
+            pode_manutencoes INTEGER DEFAULT 1,
+            pode_dashboard INTEGER DEFAULT 1,
+            pode_usuarios INTEGER DEFAULT 0
         )
         """)
 
-        # 🔥 VERIFICA SE EXISTE ADMIN
+        # 🔥 GARANTE COLUNAS (caso já exista tabela antiga)
+        cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS cargo TEXT DEFAULT 'usuario'")
+        cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_veiculos INTEGER DEFAULT 1")
+        cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_manutencoes INTEGER DEFAULT 1")
+        cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_dashboard INTEGER DEFAULT 1")
+        cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_usuarios INTEGER DEFAULT 0")
+
+        # 🔥 VERIFICA ADMIN
         cursor.execute("SELECT * FROM usuarios WHERE nome='admin'")
         admin = cursor.fetchone()
 
         if not admin:
             senha_hash = generate_password_hash("123")
 
-            cursor.execute(
-                "INSERT INTO usuarios (nome, senha) VALUES (%s, %s)",
-                ("admin", senha_hash)
-            )
+            cursor.execute("""
+                INSERT INTO usuarios 
+                (nome, senha, cargo, pode_veiculos, pode_manutencoes, pode_dashboard, pode_usuarios)
+                VALUES (%s, %s, %s, 1, 1, 1, 1)
+            """, ("admin", senha_hash, "admin"))
 
             print("✅ ADMIN CRIADO: login=admin senha=123")
 
