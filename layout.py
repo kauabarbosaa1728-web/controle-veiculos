@@ -16,8 +16,12 @@ def layout(conteudo):
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
         <style>
+            * {{
+                box-sizing: border-box;
+            }}
+
             body {{
-                background: #0b0f19;
+                background: linear-gradient(135deg, #0b0f19, #020617);
                 color: #e5e7eb;
                 font-family: Arial;
                 margin: 0;
@@ -38,6 +42,9 @@ def layout(conteudo):
                 background: #020617;
                 padding: 15px;
                 border-bottom: 1px solid #1f2937;
+                position: sticky;
+                top: 0;
+                z-index: 1000;
             }}
 
             .menu {{
@@ -66,7 +73,7 @@ def layout(conteudo):
             }}
 
             .conteudo {{
-                max-width: 1000px;
+                max-width: 1100px;
                 margin: auto;
                 padding: 20px;
             }}
@@ -77,6 +84,7 @@ def layout(conteudo):
                 border-radius: 12px;
                 border: 1px solid #1f2937;
                 box-shadow: 0 0 10px rgba(0,0,0,0.5);
+                margin-bottom: 20px;
             }}
 
             .grid-botoes {{
@@ -105,7 +113,7 @@ def layout(conteudo):
                 background: linear-gradient(145deg, #2563eb, #3b82f6);
             }}
 
-            input, select {{
+            input, select, textarea {{
                 width: 100%;
                 padding: 10px;
                 margin: 6px 0;
@@ -134,12 +142,11 @@ def layout(conteudo):
             table {{
                 width: 100%;
                 margin-top: 15px;
-                display: block;
                 overflow-x: auto;
-                white-space: nowrap;
                 font-size: 12px;
                 background: #020617;
                 border-radius: 8px;
+                border-collapse: collapse;
             }}
 
             th, td {{
@@ -153,6 +160,11 @@ def layout(conteudo):
 
             tr:nth-child(even) {{
                 background: #0f172a;
+            }}
+
+            img {{
+                max-width: 100%;
+                border-radius: 8px;
             }}
         </style>
     </head>
@@ -201,7 +213,7 @@ def layout(conteudo):
             setTimeout(() => {{
                 const splash = document.getElementById("splash");
                 if (splash) splash.style.display = "none";
-            }}, 800);
+            }}, 500);
         }});
         </script>
 
