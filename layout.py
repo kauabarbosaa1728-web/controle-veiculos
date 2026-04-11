@@ -1,3 +1,12 @@
+from flask import session
+
+# 🔥 PERMISSÃO
+def tem_permissao(nome):
+    if session.get("cargo") == "admin":
+        return True
+    return session.get(nome) == 1
+
+
 def layout(conteudo):
     return f"""
     <html>
@@ -25,14 +34,12 @@ def layout(conteudo):
                 text-align: center;
             }}
 
-            /* 🔥 TOPO */
             .topo {{
                 background: #020617;
                 padding: 15px;
                 border-bottom: 1px solid #1f2937;
             }}
 
-            /* 🔥 MENU */
             .menu {{
                 display: flex;
                 justify-content: center;
@@ -58,14 +65,12 @@ def layout(conteudo):
                 transform: scale(1.05);
             }}
 
-            /* 🔥 CONTEÚDO */
             .conteudo {{
                 max-width: 1000px;
                 margin: auto;
                 padding: 20px;
             }}
 
-            /* 🔥 CARD */
             .card {{
                 background: #111827;
                 padding: 20px;
@@ -74,7 +79,6 @@ def layout(conteudo):
                 box-shadow: 0 0 10px rgba(0,0,0,0.5);
             }}
 
-            /* 🔥 GRID BONITO (MELHORADO) */
             .grid-botoes {{
                 display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -101,7 +105,6 @@ def layout(conteudo):
                 background: linear-gradient(145deg, #2563eb, #3b82f6);
             }}
 
-            /* 🔥 FORM */
             input, select {{
                 width: 100%;
                 padding: 10px;
@@ -128,7 +131,6 @@ def layout(conteudo):
                 background: #2563eb;
             }}
 
-            /* 🔥 TABELA */
             table {{
                 width: 100%;
                 margin-top: 15px;
@@ -152,32 +154,11 @@ def layout(conteudo):
             tr:nth-child(even) {{
                 background: #0f172a;
             }}
-
-            /* 🔥 CENTRALIZAR LINKS FEIOS AUTOMATICAMENTE */
-            .conteudo a {{
-                display: block;
-                margin: 10px auto;
-                width: 250px;
-                text-align: center;
-                background: #1e3a8a;
-                padding: 15px;
-                border-radius: 10px;
-                color: white;
-                text-decoration: none;
-                font-weight: bold;
-                transition: 0.2s;
-            }}
-
-            .conteudo a:hover {{
-                background: #2563eb;
-                transform: scale(1.05);
-            }}
         </style>
     </head>
 
     <body>
 
-        <!-- 🔥 SPLASH -->
         <div id="splash" style="
             position:fixed;
             top:0;
@@ -195,27 +176,26 @@ def layout(conteudo):
             <p>Carregando...</p>
         </div>
 
-        <!-- 🔥 TOPO -->
         <div class="topo">
             <h1>🚗 KBSISTEMAS AUTO</h1>
         </div>
 
-        <!-- 🔥 MENU -->
         <div class="menu">
             <a href="/">🏠 Início</a>
-            <a href="/veiculos">🚗 Veículos</a>
-            <a href="/manutencoes">🔧 Manutenções</a>
-            <a href="/dashboard">📊 Dashboard</a>
-            <a href="/usuarios">👤 Usuários</a>
+
+            {"<a href='/veiculos'>🚗 Veículos</a>" if tem_permissao("pode_veiculos") else ""}
+            {"<a href='/manutencoes'>🔧 Manutenções</a>" if tem_permissao("pode_manutencoes") else ""}
+            {"<a href='/dashboard'>📊 Dashboard</a>" if tem_permissao("pode_dashboard") else ""}
+            {"<a href='/usuarios'>👤 Usuários</a>" if tem_permissao("pode_usuarios") else ""}
+
             <a href="/problemas">⚠️ Problemas</a>
+            <a href="/logout">🚪 Sair</a>
         </div>
 
-        <!-- 🔥 CONTEÚDO -->
         <div class="conteudo">
             {conteudo}
         </div>
 
-        <!-- 🔥 SPLASH SOME -->
         <script>
         window.addEventListener("load", () => {{
             setTimeout(() => {{
