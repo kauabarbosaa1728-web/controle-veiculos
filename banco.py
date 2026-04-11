@@ -81,3 +81,6 @@ def criar_banco():
     finally:
         cursor.close()
         devolver_conexao(conn)
+
+
+                     
