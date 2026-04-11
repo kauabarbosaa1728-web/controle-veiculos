@@ -27,7 +27,7 @@ def devolver_conexao(conn):
     except Exception as e:
         print("ERRO AO DEVOLVER CONEXÃO:", e)
 
-# 🔥 CRIAR TABELAS + ADMIN
+# 🔥 CRIAR BANCO
 def criar_banco():
     conn = conectar()
     if conn is None:
@@ -71,49 +71,55 @@ def criar_banco():
         """)
 
         # ================= 👤 USUÁRIOS =================
-       cursor.execute("""
-CREATE TABLE IF NOT EXISTS usuarios (
-    id SERIAL PRIMARY KEY,
-    nome TEXT UNIQUE,
-    senha TEXT,
-    cargo TEXT DEFAULT 'usuario',
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id SERIAL PRIMARY KEY,
+            nome TEXT UNIQUE,
+            senha TEXT,
+            cargo TEXT DEFAULT 'usuario',
 
-    pode_veiculos INTEGER DEFAULT 1,
-    pode_manutencoes INTEGER DEFAULT 1,
-    pode_dashboard INTEGER DEFAULT 1,
-    pode_usuarios INTEGER DEFAULT 0,
+            pode_veiculos INTEGER DEFAULT 1,
+            pode_manutencoes INTEGER DEFAULT 1,
+            pode_dashboard INTEGER DEFAULT 1,
+            pode_usuarios INTEGER DEFAULT 0,
 
-    pode_problemas INTEGER DEFAULT 0,
-    pode_ver_problemas INTEGER DEFAULT 0
-)
-""")
+            pode_problemas INTEGER DEFAULT 0,
+            pode_ver_problemas INTEGER DEFAULT 0
+        )
+        """)
 
-# 🔥 GARANTE COLUNAS (caso tabela já exista)
-cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS cargo TEXT DEFAULT 'usuario'")
-cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_veiculos INTEGER DEFAULT 1")
-cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_manutencoes INTEGER DEFAULT 1")
-cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_dashboard INTEGER DEFAULT 1")
-cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_usuarios INTEGER DEFAULT 0")
+        # 🔥 GARANTE COLUNAS
+        cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS cargo TEXT DEFAULT 'usuario'")
+        cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_veiculos INTEGER DEFAULT 1")
+        cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_manutencoes INTEGER DEFAULT 1")
+        cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_dashboard INTEGER DEFAULT 1")
+        cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_usuarios INTEGER DEFAULT 0")
 
-# 🔥 NOVAS PERMISSÕES
-cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_problemas INTEGER DEFAULT 0")
-cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_ver_problemas INTEGER DEFAULT 0")
+        cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_problemas INTEGER DEFAULT 0")
+        cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_ver_problemas INTEGER DEFAULT 0")
 
-# 🔥 VERIFICA ADMIN
-cursor.execute("SELECT * FROM usuarios WHERE nome='admin'")
-admin = cursor.fetchone()
+        # 🔥 ADMIN
+        cursor.execute("SELECT * FROM usuarios WHERE nome='admin'")
+        admin = cursor.fetchone()
 
-if not admin:
-    senha_hash = generate_password_hash("123")
+        if not admin:
+            senha_hash = generate_password_hash("123")
 
-    cursor.execute("""
-        INSERT INTO usuarios 
-        (nome, senha, cargo,
-         pode_veiculos, pode_manutencoes, pode_dashboard, pode_usuarios,
-         pode_problemas, pode_ver_problemas)
-        VALUES (%s, %s, %s, 1, 1, 1, 1, 1, 1)
-    """, ("admin", senha_hash, "admin"))
+            cursor.execute("""
+                INSERT INTO usuarios 
+                (nome, senha, cargo,
+                 pode_veiculos, pode_manutencoes, pode_dashboard, pode_usuarios,
+                 pode_problemas, pode_ver_problemas)
+                VALUES (%s, %s, %s, 1, 1, 1, 1, 1, 1)
+            """, ("admin", senha_hash, "admin"))
 
-    print("✅ ADMIN CRIADO: login=admin senha=123")
+            print("✅ ADMIN CRIADO: login=admin senha=123")
 
-conn.commit()
+        conn.commit()
+
+    except Exception as e:
+        print("ERRO AO CRIAR TABELAS:", e)
+
+    finally:
+        cursor.close()
+        devolver_conexao(conn)
