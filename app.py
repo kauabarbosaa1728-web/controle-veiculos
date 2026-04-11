@@ -70,6 +70,11 @@ def login():
              pode_usuarios) = user
 
             if check_password_hash(senha_db, senha):
+
+                # 🔥 FORÇA ADMIN (resolve seu problema)
+                if nome_db == "admin":
+                    cargo = "admin"
+
                 session["user"] = nome_db
                 session["cargo"] = cargo
 
@@ -93,7 +98,6 @@ def login():
             <button>Entrar</button>
         </form>
     """)
-
 # ================= 🚪 LOGOUT =================
 @app.route("/logout")
 def logout():
