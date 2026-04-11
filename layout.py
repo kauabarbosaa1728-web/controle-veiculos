@@ -5,7 +5,6 @@ def layout(conteudo):
         <title>KBSISTEMAS AUTO</title>
         <link rel="manifest" href="/static/manifest.json">
 
-        <!-- 🔥 RESPONSIVO -->
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
         <style>
@@ -13,7 +12,6 @@ def layout(conteudo):
                 background: #0b0f19;
                 color: #e5e7eb;
                 font-family: Arial;
-                padding: 15px;
                 margin: 0;
             }}
 
@@ -21,39 +19,71 @@ def layout(conteudo):
                 color: #3b82f6;
                 font-size: 22px;
                 text-align: center;
+                margin: 10px 0;
             }}
 
             h2, h3 {{
                 color: #60a5fa;
             }}
 
+            /* 🔥 TOPO */
+            .topo {{
+                text-align: center;
+                padding: 10px;
+                background: #020617;
+                border-bottom: 1px solid #1f2937;
+            }}
+
+            /* 🔥 ABAS */
             .menu {{
                 display: flex;
-                flex-wrap: wrap;
                 justify-content: center;
                 gap: 10px;
-                margin-bottom: 15px;
+                padding: 10px;
+                flex-wrap: wrap;
+                background: #020617;
+                border-bottom: 1px solid #1f2937;
             }}
 
             .menu a {{
                 background: #1e3a8a;
-                padding: 10px 12px;
+                padding: 10px 14px;
                 border-radius: 8px;
                 color: white;
                 text-decoration: none;
                 font-size: 14px;
                 font-weight: bold;
+                transition: 0.2s;
             }}
 
             .menu a:hover {{
                 background: #2563eb;
+                transform: scale(1.05);
             }}
 
+            /* 🔥 CONTEÚDO CENTRAL */
+            .conteudo {{
+                max-width: 1000px;
+                margin: auto;
+                padding: 20px;
+            }}
+
+            /* 🔥 CARDS */
+            .card {{
+                background: #111827;
+                padding: 20px;
+                border-radius: 10px;
+                margin-bottom: 15px;
+                border: 1px solid #1f2937;
+                box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            }}
+
+            /* FORM */
             input, select {{
                 width: 100%;
                 padding: 10px;
                 margin: 6px 0;
-                background: #111827;
+                background: #020617;
                 color: #e5e7eb;
                 border: 1px solid #3b82f6;
                 border-radius: 6px;
@@ -68,12 +98,14 @@ def layout(conteudo):
                 border-radius: 8px;
                 font-weight: bold;
                 margin-top: 10px;
+                cursor: pointer;
             }}
 
             button:hover {{
                 background: #2563eb;
             }}
 
+            /* TABELA */
             table {{
                 width: 100%;
                 margin-top: 15px;
@@ -81,11 +113,12 @@ def layout(conteudo):
                 overflow-x: auto;
                 white-space: nowrap;
                 font-size: 12px;
-                background: #111827;
+                background: #020617;
+                border-radius: 8px;
             }}
 
             th, td {{
-                padding: 8px;
+                padding: 10px;
                 border: 1px solid #1f2937;
             }}
 
@@ -97,14 +130,6 @@ def layout(conteudo):
                 background: #0f172a;
             }}
 
-            .card {{
-                background: #111827;
-                padding: 15px;
-                border-radius: 10px;
-                margin: 10px 0;
-                border: 1px solid #1f2937;
-            }}
-
             hr {{
                 border: 1px solid #1f2937;
                 margin: 15px 0;
@@ -114,7 +139,7 @@ def layout(conteudo):
 
     <body>
 
-        <!-- 🔥 SPLASH SCREEN -->
+        <!-- 🔥 SPLASH -->
         <div id="splash" style="
             position:fixed;
             top:0;
@@ -132,20 +157,29 @@ def layout(conteudo):
             <p>Carregando...</p>
         </div>
 
-        <h1>🚗 KBSISTEMAS AUTO</h1>
-
-        <div class="menu">
-            <a href="/">🏠</a>
-            <a href="/veiculos">🚗</a>
-            <a href="/manutencoes">🔧</a>
-            <a href="/dashboard">📊</a>
+        <!-- 🔥 TOPO -->
+        <div class="topo">
+            <h1>🚗 KBSISTEMAS AUTO</h1>
         </div>
 
-        <hr>
+        <!-- 🔥 MENU EM ABAS -->
+        <div class="menu">
+            <a href="/">🏠 Início</a>
+            <a href="/veiculos">🚗 Veículos</a>
+            <a href="/manutencoes">🔧 Manutenções</a>
+            <a href="/dashboard">📊 Dashboard</a>
+            <a href="/usuarios">👤 Usuários</a>
+            <a href="/problemas">⚠️ Problemas</a>
+        </div>
 
-        {conteudo}
+        <!-- 🔥 CONTEÚDO -->
+        <div class="conteudo">
+            <div class="card">
+                {conteudo}
+            </div>
+        </div>
 
-        <!-- 🔥 BOTÃO INSTALAR APP -->
+        <!-- 🔥 INSTALAR APP -->
         <script>
         let deferredPrompt;
 
@@ -155,7 +189,7 @@ def layout(conteudo):
 
             const btn = document.createElement("button");
             btn.innerText = "📲 Instalar App";
-            btn.style.marginTop = "15px";
+            btn.style.margin = "20px";
 
             btn.onclick = () => {{
                 deferredPrompt.prompt();
@@ -168,19 +202,16 @@ def layout(conteudo):
         }});
         </script>
 
-        <!-- 🔥 SUMIR SPLASH -->
+        <!-- 🔥 SPLASH SOME -->
         <script>
         window.addEventListener("load", () => {{
             setTimeout(() => {{
                 const splash = document.getElementById("splash");
                 if (splash) splash.style.display = "none";
-            }}, 1000);
+            }}, 800);
         }});
         </script>
 
     </body>
     </html>
     """
-
-
-        
