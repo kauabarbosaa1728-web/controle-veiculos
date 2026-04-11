@@ -40,27 +40,22 @@ def login():
         nome = request.form.get("nome")
         senha = request.form.get("senha")
 
-        try:
-            conn = conectar()
-            cursor = conn.cursor()
+        conn = conectar()
+        cursor = conn.cursor()
 
-            cursor.execute("""
-                SELECT nome, senha, cargo,
-                       pode_veiculos,
-                       pode_manutencoes,
-                       pode_dashboard,
-                       pode_usuarios
-                FROM usuarios
-                WHERE nome=%s
-            """, (nome,))
-            user = cursor.fetchone()
+        cursor.execute("""
+            SELECT nome, senha, cargo,
+                   pode_veiculos,
+                   pode_manutencoes,
+                   pode_dashboard,
+                   pode_usuarios
+            FROM usuarios
+            WHERE nome=%s
+        """, (nome,))
+        user = cursor.fetchone()
 
-            cursor.close()
-            devolver_conexao(conn)
-
-        except Exception as e:
-            print("ERRO LOGIN:", e)
-            return layout("<h2>❌ Erro no servidor</h2>")
+        cursor.close()
+        devolver_conexao(conn)
 
         if user:
             (nome_db, senha_db, cargo,
@@ -71,7 +66,6 @@ def login():
 
             if check_password_hash(senha_db, senha):
 
-                # 🔥 GARANTE ADMIN
                 if nome_db == "admin":
                     cargo = "admin"
 
@@ -190,6 +184,136 @@ def deletar_problema(id):
 
     return redirect("/ver_problemas")
 
+# ================= 👤 USUÁRIOS =================
+@app.route("/usuarios", methods=["GET", "POST"])
+def usuarios():
+    if session.get("user") != "admin":
+        return "<h1 style='color:red;text-align:center;'>🚫 Apenas admin</h1>"
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    if request.method == "POST":
+        nome = request.form.get("nome")
+        senha = request.form.get("senha")
+
+        pode_veiculos = 1 if request.form.get("pode_veiculos") else 0
+        pode_manutencoes = 1 if request.form.get("pode_manutencoes") else 0
+        pode_dashboard = 1 if request.form.get("pode_dashboard") else 0
+        pode_usuarios = 1 if request.form.get("pode_usuarios") else 0
+
+        senha_hash = generate_password_hash(senha)
+
+        cursor.execute("""
+            INSERT INTO usuarios 
+            (nome, senha, cargo,
+             pode_veiculos, pode_manutencoes,
+             pode_dashboard, pode_usuarios)
+            VALUES (%s, %s, 'usuario', %s, %s, %s, %s)
+        """, (
+            nome, senha_hash,
+            pode_veiculos,
+            pode_manutencoes,
+            pode_dashboard,
+            pode_usuarios
+        ))
+
+        conn.commit()
+
+    cursor.execute("""
+        SELECT id, nome, cargo,
+               pode_veiculos,
+               pode_manutencoes,
+               pode_dashboard,
+               pode_usuarios
+        FROM usuarios
+    """)
+    dados = cursor.fetchall()
+
+    html = "<h2>👤 Usuários</h2>"
+
+    html += """
+    <div class="card">
+        <form method="POST">
+            <input name="nome" placeholder="Usuário" required>
+            <input name="senha" placeholder="Senha" required>
+
+            <label><input type="checkbox" name="pode_veiculos"> Veículos</label><br>
+            <label><input type="checkbox" name="pode_manutencoes"> Manutenções</label><br>
+            <label><input type="checkbox" name="pode_dashboard"> Dashboard</label><br>
+            <label><input type="checkbox" name="pode_usuarios"> Usuários</label><br><br>
+
+            <button>Criar Usuário</button>
+        </form>
+    </div>
+    """
+
+    html += "<div class='card'><h3>Lista</h3>"
+
+    for u in dados:
+        html += f"""
+        <div style="margin-bottom:15px;">
+            <p>
+            👤 {u[1]} ({u[2]})<br>
+            🚗 {u[3]} | 🔧 {u[4]} | 📊 {u[5]} | 👤 {u[6]}
+            </p>
+
+            <form method="POST" action="/trocar_senha_admin/{u[0]}">
+                <input name="nova" placeholder="Nova senha">
+                <button>🔐 Trocar Senha</button>
+            </form>
+
+            <a href="/excluir_usuario/{u[0]}" onclick="return confirm('Tem certeza?')">
+               ❌ Excluir
+            </a>
+        </div>
+        """
+
+    html += "</div>"
+
+    cursor.close()
+    devolver_conexao(conn)
+
+    return layout(html)
+
+# ================= EXCLUIR =================
+@app.route("/excluir_usuario/<int:id>")
+def excluir_usuario(id):
+    if session.get("user") != "admin":
+        return "Acesso negado"
+
+    conn = conectar()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM usuarios WHERE id=%s", (id,))
+    conn.commit()
+    cursor.close()
+    devolver_conexao(conn)
+
+    return redirect("/usuarios")
+
+# ================= TROCAR SENHA =================
+@app.route("/trocar_senha_admin/<int:id>", methods=["POST"])
+def trocar_senha_admin(id):
+    if session.get("user") != "admin":
+        return "Acesso negado"
+
+    nova = request.form.get("nova")
+
+    if not nova:
+        return redirect("/usuarios")
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    senha_hash = generate_password_hash(nova)
+    cursor.execute("UPDATE usuarios SET senha=%s WHERE id=%s", (senha_hash, id))
+    conn.commit()
+
+    cursor.close()
+    devolver_conexao(conn)
+
+    return redirect("/usuarios")
+
 # ================= HOME =================
 @app.route("/")
 def home():
@@ -212,162 +336,3 @@ def home():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
-    if r and r[0]:
-        caminho = os.path.join(UPLOAD_FOLDER, r[0])
-        if os.path.exists(caminho):
-            os.remove(caminho)
-
-    cursor.execute("DELETE FROM problemas WHERE id=%s", (id,))
-    conn.commit()
-    cursor.close()
-    devolver_conexao(conn)
-
-    return redirect("/ver_problemas")
-
-# ================= 👤 USUÁRIOS =================
-@app.route("/usuarios", methods=["GET", "POST"])
-def usuarios():
-    if session.get("user") != "admin":
-        return "<h1 style='color:red;text-align:center;'>🚫 Apenas admin</h1>"
-
-    conn = conectar()
-    cursor = conn.cursor()
-
-    # ================= CRIAR =================
-    if request.method == "POST":
-        nome = request.form.get("nome")
-        senha = request.form.get("senha")
-
-        pode_veiculos = 1 if request.form.get("pode_veiculos") else 0
-        pode_manutencoes = 1 if request.form.get("pode_manutencoes") else 0
-        pode_dashboard = 1 if request.form.get("pode_dashboard") else 0
-        pode_usuarios = 1 if request.form.get("pode_usuarios") else 0
-
-        try:
-            senha_hash = generate_password_hash(senha)
-
-            cursor.execute("""
-                INSERT INTO usuarios 
-                (nome, senha, cargo,
-                 pode_veiculos, pode_manutencoes,
-                 pode_dashboard, pode_usuarios)
-                VALUES (%s, %s, 'usuario', %s, %s, %s, %s)
-            """, (
-                nome, senha_hash,
-                pode_veiculos,
-                pode_manutencoes,
-                pode_dashboard,
-                pode_usuarios
-            ))
-
-            conn.commit()
-
-        except Exception as e:
-            print("ERRO USUARIO:", e)
-
-    # ================= BUSCAR =================
-    cursor.execute("""
-        SELECT id, nome, cargo,
-               pode_veiculos,
-               pode_manutencoes,
-               pode_dashboard,
-               pode_usuarios
-        FROM usuarios
-    """)
-    dados = cursor.fetchall()
-
-    html = "<h2>👤 Usuários</h2>"
-
-    # ================= FORM =================
-    html += """
-    <div class="card">
-        <form method="POST">
-            <input name="nome" placeholder="Usuário" required>
-            <input name="senha" placeholder="Senha" required>
-
-            <label><input type="checkbox" name="pode_veiculos"> Veículos</label><br>
-            <label><input type="checkbox" name="pode_manutencoes"> Manutenções</label><br>
-            <label><input type="checkbox" name="pode_dashboard"> Dashboard</label><br>
-            <label><input type="checkbox" name="pode_usuarios"> Usuários</label><br><br>
-
-            <button>Criar Usuário</button>
-        </form>
-    </div>
-    """
-
-    # ================= LISTA =================
-    html += "<div class='card'><h3>Lista</h3>"
-
-    for u in dados:
-        html += f"""
-        <div style="margin-bottom:15px;">
-            <p>
-            👤 {u[1]} ({u[2]})<br>
-            🚗 {u[3]} | 🔧 {u[4]} | 📊 {u[5]} | 👤 {u[6]}
-            </p>
-
-            <form method="POST" action="/trocar_senha_admin/{u[0]}" style="margin-bottom:5px;">
-                <input name="nova" placeholder="Nova senha">
-                <button>🔐 Trocar Senha</button>
-            </form>
-
-            <a href="/excluir_usuario/{u[0]}" 
-               style="color:red;"
-               onclick="return confirm('Tem certeza?')">
-               ❌ Excluir
-            </a>
-        </div>
-        """
-
-    html += "</div>"
-
-    cursor.close()
-    devolver_conexao(conn)
-
-    return layout(html)
-
-
-# ================= EXCLUIR =================
-@app.route("/excluir_usuario/<int:id>")
-def excluir_usuario(id):
-    if session.get("user") != "admin":
-        return "Acesso negado"
-
-    conn = conectar()
-    cursor = conn.cursor()
-
-    cursor.execute("DELETE FROM usuarios WHERE id=%s", (id,))
-    conn.commit()
-
-    cursor.close()
-    devolver_conexao(conn)
-
-    return redirect("/usuarios")
-
-
-# ================= TROCAR SENHA =================
-@app.route("/trocar_senha_admin/<int:id>", methods=["POST"])
-def trocar_senha_admin(id):
-    if session.get("user") != "admin":
-        return "Acesso negado"
-
-    nova = request.form.get("nova")
-
-    if not nova:
-        return redirect("/usuarios")
-
-    conn = conectar()
-    cursor = conn.cursor()
-
-    senha_hash = generate_password_hash(nova)
-
-    cursor.execute("""
-        UPDATE usuarios SET senha=%s WHERE id=%s
-    """, (senha_hash, id))
-
-    conn.commit()
-
-    cursor.close()
-    devolver_conexao(conn)
-
-    return redirect("/usuarios")
