@@ -48,7 +48,9 @@ def login():
                    pode_veiculos,
                    pode_manutencoes,
                    pode_dashboard,
-                   pode_usuarios
+                   pode_usuarios,
+                   pode_problemas,
+                   pode_ver_problemas
             FROM usuarios
             WHERE nome=%s
         """, (nome,))
@@ -62,7 +64,9 @@ def login():
              pode_veiculos,
              pode_manutencoes,
              pode_dashboard,
-             pode_usuarios) = user
+             pode_usuarios,
+             pode_problemas,
+             pode_ver_problemas) = user
 
             if check_password_hash(senha_db, senha):
 
@@ -75,6 +79,8 @@ def login():
                 session["pode_manutencoes"] = pode_manutencoes
                 session["pode_dashboard"] = pode_dashboard
                 session["pode_usuarios"] = pode_usuarios
+                session["pode_problemas"] = pode_problemas
+                session["pode_ver_problemas"] = pode_ver_problemas
 
                 return redirect("/")
             else:
@@ -105,6 +111,9 @@ def ping():
 # ================= 🚨 PROBLEMAS =================
 @app.route("/problemas", methods=["GET", "POST"])
 def problemas():
+    if session.get("pode_problemas") != 1 and session.get("cargo") != "admin":
+        return "Acesso negado"
+
     if request.method == "POST":
         descricao = request.form.get("descricao")
         foto = request.files.get("foto")
@@ -138,6 +147,9 @@ def problemas():
 # ================= 📸 VER PROBLEMAS =================
 @app.route("/ver_problemas")
 def ver_problemas():
+    if session.get("pode_ver_problemas") != 1 and session.get("cargo") != "admin":
+        return "Acesso negado"
+
     conn = conectar()
     cursor = conn.cursor()
 
@@ -201,6 +213,8 @@ def usuarios():
         pode_manutencoes = 1 if request.form.get("pode_manutencoes") else 0
         pode_dashboard = 1 if request.form.get("pode_dashboard") else 0
         pode_usuarios = 1 if request.form.get("pode_usuarios") else 0
+        pode_problemas = 1 if request.form.get("pode_problemas") else 0
+        pode_ver_problemas = 1 if request.form.get("pode_ver_problemas") else 0
 
         senha_hash = generate_password_hash(senha)
 
@@ -208,14 +222,17 @@ def usuarios():
             INSERT INTO usuarios 
             (nome, senha, cargo,
              pode_veiculos, pode_manutencoes,
-             pode_dashboard, pode_usuarios)
-            VALUES (%s, %s, 'usuario', %s, %s, %s, %s)
+             pode_dashboard, pode_usuarios,
+             pode_problemas, pode_ver_problemas)
+            VALUES (%s, %s, 'usuario', %s, %s, %s, %s, %s, %s)
         """, (
             nome, senha_hash,
             pode_veiculos,
             pode_manutencoes,
             pode_dashboard,
-            pode_usuarios
+            pode_usuarios,
+            pode_problemas,
+            pode_ver_problemas
         ))
 
         conn.commit()
@@ -225,7 +242,9 @@ def usuarios():
                pode_veiculos,
                pode_manutencoes,
                pode_dashboard,
-               pode_usuarios
+               pode_usuarios,
+               pode_problemas,
+               pode_ver_problemas
         FROM usuarios
     """)
     dados = cursor.fetchall()
@@ -241,7 +260,9 @@ def usuarios():
             <label><input type="checkbox" name="pode_veiculos"> Veículos</label><br>
             <label><input type="checkbox" name="pode_manutencoes"> Manutenções</label><br>
             <label><input type="checkbox" name="pode_dashboard"> Dashboard</label><br>
-            <label><input type="checkbox" name="pode_usuarios"> Usuários</label><br><br>
+            <label><input type="checkbox" name="pode_usuarios"> Usuários</label><br>
+            <label><input type="checkbox" name="pode_problemas"> Problemas</label><br>
+            <label><input type="checkbox" name="pode_ver_problemas"> Ver Problemas</label><br><br>
 
             <button>Criar Usuário</button>
         </form>
@@ -255,7 +276,7 @@ def usuarios():
         <div style="margin-bottom:15px;">
             <p>
             👤 {u[1]} ({u[2]})<br>
-            🚗 {u[3]} | 🔧 {u[4]} | 📊 {u[5]} | 👤 {u[6]}
+            🚗 {u[3]} | 🔧 {u[4]} | 📊 {u[5]} | 👤 {u[6]} | ⚠️ {u[7]} | 📋 {u[8]}
             </p>
 
             <form method="POST" action="/trocar_senha_admin/{u[0]}">
