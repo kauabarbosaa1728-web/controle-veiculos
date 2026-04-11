@@ -1,27 +1,32 @@
-import psycopg
-from psycopg_pool import ConnectionPool
+import psycopg2
+from psycopg2 import pool
 
 DATABASE_URL = "postgresql://neondb_owner:npg_1jUl6SpdBMNg@ep-little-sky-anfi8c6a-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require"
 
-pool = ConnectionPool(conninfo=DATABASE_URL)
+# 🔥 POOL DE CONEXÃO
+connection_pool = pool.SimpleConnectionPool(
+    1,
+    10,
+    DATABASE_URL
+)
 
-
+# 🔥 CONECTAR
 def conectar():
     try:
-        return pool.getconn()
+        return connection_pool.getconn()
     except Exception as e:
         print("ERRO AO CONECTAR:", e)
         return None
 
-
+# 🔥 DEVOLVER CONEXÃO
 def devolver_conexao(conn):
     try:
         if conn:
-            pool.putconn(conn)
+            connection_pool.putconn(conn)
     except Exception as e:
         print("ERRO AO DEVOLVER CONEXÃO:", e)
 
-
+# 🔥 CRIAR TABELAS
 def criar_banco():
     conn = conectar()
     if conn is None:
@@ -31,7 +36,6 @@ def criar_banco():
     cursor = conn.cursor()
 
     try:
-        # ================= 🚗 VEÍCULOS =================
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS veiculos (
             id SERIAL PRIMARY KEY,
@@ -40,7 +44,6 @@ def criar_banco():
         )
         """)
 
-        # ================= 🔧 MANUTENÇÕES =================
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS manutencoes (
             id SERIAL PRIMARY KEY,
@@ -54,7 +57,6 @@ def criar_banco():
         )
         """)
 
-        # ================= 🚨 PROBLEMAS =================
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS problemas (
             id SERIAL PRIMARY KEY,
@@ -64,7 +66,6 @@ def criar_banco():
         )
         """)
 
-        # ================= 👤 USUÁRIOS =================
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS usuarios (
             id SERIAL PRIMARY KEY,
@@ -81,6 +82,3 @@ def criar_banco():
     finally:
         cursor.close()
         devolver_conexao(conn)
-
-
-                     
