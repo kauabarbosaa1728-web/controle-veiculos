@@ -60,7 +60,7 @@ def layout(conteudo):
 
             /* 🔥 CONTEÚDO */
             .conteudo {{
-                max-width: 900px;
+                max-width: 1000px;
                 margin: auto;
                 padding: 20px;
             }}
@@ -74,25 +74,26 @@ def layout(conteudo):
                 box-shadow: 0 0 10px rgba(0,0,0,0.5);
             }}
 
-            /* 🔥 BOTÕES GRANDES (NOVO) */
+            /* 🔥 GRID BONITO (MELHORADO) */
             .grid-botoes {{
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-                gap: 15px;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 20px;
                 margin-top: 20px;
             }}
 
             .grid-botoes a {{
                 background: linear-gradient(145deg, #1e3a8a, #2563eb);
-                padding: 25px 10px;
+                padding: 30px 15px;
                 border-radius: 15px;
                 text-align: center;
                 text-decoration: none;
                 color: white;
                 font-weight: bold;
-                font-size: 16px;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+                font-size: 18px;
+                box-shadow: 0 6px 15px rgba(0,0,0,0.5);
                 transition: 0.2s;
+                display: block;
             }}
 
             .grid-botoes a:hover {{
@@ -100,7 +101,7 @@ def layout(conteudo):
                 background: linear-gradient(145deg, #2563eb, #3b82f6);
             }}
 
-            /* FORM */
+            /* 🔥 FORM */
             input, select {{
                 width: 100%;
                 padding: 10px;
@@ -127,7 +128,7 @@ def layout(conteudo):
                 background: #2563eb;
             }}
 
-            /* TABELA */
+            /* 🔥 TABELA */
             table {{
                 width: 100%;
                 margin-top: 15px;
@@ -150,6 +151,26 @@ def layout(conteudo):
 
             tr:nth-child(even) {{
                 background: #0f172a;
+            }}
+
+            /* 🔥 CENTRALIZAR LINKS FEIOS AUTOMATICAMENTE */
+            .conteudo a {{
+                display: block;
+                margin: 10px auto;
+                width: 250px;
+                text-align: center;
+                background: #1e3a8a;
+                padding: 15px;
+                border-radius: 10px;
+                color: white;
+                text-decoration: none;
+                font-weight: bold;
+                transition: 0.2s;
+            }}
+
+            .conteudo a:hover {{
+                background: #2563eb;
+                transform: scale(1.05);
             }}
         </style>
     </head>
