@@ -14,6 +14,7 @@ app.secret_key = "segredo123"
 
 UPLOAD_FOLDER = os.path.join("static", "uploads")
 
+# 🔥 CRIA BANCO + ADMIN
 criar_banco()
 
 app.register_blueprint(veiculos_bp)
@@ -32,6 +33,9 @@ def proteger():
 # ================= 🔐 LOGIN =================
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    if "user" in session:
+        return redirect("/")
+
     if request.method == "POST":
         nome = request.form.get("nome")
         senha = request.form.get("senha")
@@ -230,4 +234,3 @@ def home():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
-         
