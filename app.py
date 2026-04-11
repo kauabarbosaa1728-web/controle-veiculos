@@ -14,7 +14,7 @@ app.secret_key = "segredo123"
 
 UPLOAD_FOLDER = os.path.join("static", "uploads")
 
-# 🔥 CRIA BANCO + ADMIN
+# 🔥 CRIA BANCO
 criar_banco()
 
 app.register_blueprint(veiculos_bp)
@@ -60,7 +60,7 @@ def login():
 
         except Exception as e:
             print("ERRO LOGIN:", e)
-            return layout("<h2>❌ Erro no servidor (login)</h2>")
+            return layout("<h2>❌ Erro no servidor</h2>")
 
         if user:
             (nome_db, senha_db, cargo,
@@ -71,14 +71,12 @@ def login():
 
             if check_password_hash(senha_db, senha):
 
-                # 🔥 FORÇA ADMIN (resolve seu problema)
+                # 🔥 GARANTE ADMIN
                 if nome_db == "admin":
                     cargo = "admin"
 
                 session["user"] = nome_db
                 session["cargo"] = cargo
-
-                # 🔥 PERMISSÕES
                 session["pode_veiculos"] = pode_veiculos
                 session["pode_manutencoes"] = pode_manutencoes
                 session["pode_dashboard"] = pode_dashboard
@@ -98,6 +96,7 @@ def login():
             <button>Entrar</button>
         </form>
     """)
+
 # ================= 🚪 LOGOUT =================
 @app.route("/logout")
 def logout():
@@ -119,13 +118,10 @@ def problemas():
         nome_arquivo = ""
 
         if foto:
-            try:
-                os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-                nome_arquivo = secure_filename(f"{datetime.now().timestamp()}_{foto.filename}")
-                caminho = os.path.join(UPLOAD_FOLDER, nome_arquivo)
-                foto.save(caminho)
-            except Exception as e:
-                print("ERRO FOTO:", e)
+            os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+            nome_arquivo = secure_filename(f"{datetime.now().timestamp()}_{foto.filename}")
+            caminho = os.path.join(UPLOAD_FOLDER, nome_arquivo)
+            foto.save(caminho)
 
         conn = conectar()
         cursor = conn.cursor()
@@ -151,11 +147,8 @@ def ver_problemas():
     conn = conectar()
     cursor = conn.cursor()
 
-    try:
-        cursor.execute("SELECT id, descricao, foto, data FROM problemas ORDER BY id DESC")
-        dados = cursor.fetchall()
-    except:
-        dados = []
+    cursor.execute("SELECT id, descricao, foto, data FROM problemas ORDER BY id DESC")
+    dados = cursor.fetchall()
 
     cursor.close()
     devolver_conexao(conn)
@@ -184,6 +177,41 @@ def deletar_problema(id):
     cursor.execute("SELECT foto FROM problemas WHERE id=%s", (id,))
     r = cursor.fetchone()
 
+    if r and r[0]:
+        caminho = os.path.join(UPLOAD_FOLDER, r[0])
+        if os.path.exists(caminho):
+            os.remove(caminho)
+
+    cursor.execute("DELETE FROM problemas WHERE id=%s", (id,))
+    conn.commit()
+
+    cursor.close()
+    devolver_conexao(conn)
+
+    return redirect("/ver_problemas")
+
+# ================= HOME =================
+@app.route("/")
+def home():
+    if "user" not in session:
+        return redirect("/login")
+
+    return layout("""
+        <a href="/logout">Sair</a>
+        <h2>🚗 Sistema</h2>
+
+        <div class="grid-botoes">
+            <a href="/veiculos">🚗 Veículos</a>
+            <a href="/manutencoes">🔧 Manutenções</a>
+            <a href="/dashboard">📊 Dashboard</a>
+            <a href="/usuarios">👤 Usuários</a>
+            <a href="/problemas">⚠️ Problemas</a>
+            <a href="/ver_problemas">📋 Ver Problemas</a>
+        </div>
+    """)
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
     if r and r[0]:
         caminho = os.path.join(UPLOAD_FOLDER, r[0])
         if os.path.exists(caminho):
