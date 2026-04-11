@@ -205,11 +205,11 @@ def usuarios():
     conn = conectar()
     cursor = conn.cursor()
 
+    # ================= CRIAR =================
     if request.method == "POST":
         nome = request.form.get("nome")
         senha = request.form.get("senha")
 
-        # 🔥 PERMISSÕES
         pode_veiculos = 1 if request.form.get("pode_veiculos") else 0
         pode_manutencoes = 1 if request.form.get("pode_manutencoes") else 0
         pode_dashboard = 1 if request.form.get("pode_dashboard") else 0
@@ -220,8 +220,8 @@ def usuarios():
 
             cursor.execute("""
                 INSERT INTO usuarios 
-                (nome, senha, cargo, 
-                 pode_veiculos, pode_manutencoes, 
+                (nome, senha, cargo,
+                 pode_veiculos, pode_manutencoes,
                  pode_dashboard, pode_usuarios)
                 VALUES (%s, %s, 'usuario', %s, %s, %s, %s)
             """, (
@@ -237,19 +237,20 @@ def usuarios():
         except Exception as e:
             print("ERRO USUARIO:", e)
 
+    # ================= BUSCAR =================
     cursor.execute("""
-        SELECT nome, cargo, 
-               pode_veiculos, 
-               pode_manutencoes, 
-               pode_dashboard, 
-               pode_usuarios 
+        SELECT id, nome, cargo,
+               pode_veiculos,
+               pode_manutencoes,
+               pode_dashboard,
+               pode_usuarios
         FROM usuarios
     """)
     dados = cursor.fetchall()
 
     html = "<h2>👤 Usuários</h2>"
 
-    # 🔥 FORMULÁRIO
+    # ================= FORM =================
     html += """
     <div class="card">
         <form method="POST">
@@ -266,18 +267,28 @@ def usuarios():
     </div>
     """
 
-    # 🔥 LISTA
+    # ================= LISTA =================
     html += "<div class='card'><h3>Lista</h3>"
 
     for u in dados:
         html += f"""
-        <p>
-        👤 {u[0]} ({u[1]})<br>
-        🚗 Veículos: {u[2]} |
-        🔧 Manutenções: {u[3]} |
-        📊 Dashboard: {u[4]} |
-        👤 Usuários: {u[5]}
-        </p>
+        <div style="margin-bottom:15px;">
+            <p>
+            👤 {u[1]} ({u[2]})<br>
+            🚗 {u[3]} | 🔧 {u[4]} | 📊 {u[5]} | 👤 {u[6]}
+            </p>
+
+            <form method="POST" action="/trocar_senha_admin/{u[0]}" style="margin-bottom:5px;">
+                <input name="nova" placeholder="Nova senha">
+                <button>🔐 Trocar Senha</button>
+            </form>
+
+            <a href="/excluir_usuario/{u[0]}" 
+               style="color:red;"
+               onclick="return confirm('Tem certeza?')">
+               ❌ Excluir
+            </a>
+        </div>
         """
 
     html += "</div>"
@@ -286,22 +297,49 @@ def usuarios():
     devolver_conexao(conn)
 
     return layout(html)
-# ================= HOME =================
-@app.route("/")
-def home():
-    return layout("""
-        <a href="/logout">Sair</a>
-        <h2>🚗 Sistema</h2>
 
-        <div class="grid-botoes">
-            <a href="/veiculos">🚗 Veículos</a>
-            <a href="/manutencoes">🔧 Manutenções</a>
-            <a href="/dashboard">📊 Dashboard</a>
-            <a href="/usuarios">👤 Usuários</a>
-            <a href="/problemas">⚠️ Problemas</a>
-            <a href="/ver_problemas">📋 Ver Problemas</a>
-        </div>
-    """)
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+# ================= EXCLUIR =================
+@app.route("/excluir_usuario/<int:id>")
+def excluir_usuario(id):
+    if session.get("user") != "admin":
+        return "Acesso negado"
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM usuarios WHERE id=%s", (id,))
+    conn.commit()
+
+    cursor.close()
+    devolver_conexao(conn)
+
+    return redirect("/usuarios")
+
+
+# ================= TROCAR SENHA =================
+@app.route("/trocar_senha_admin/<int:id>", methods=["POST"])
+def trocar_senha_admin(id):
+    if session.get("user") != "admin":
+        return "Acesso negado"
+
+    nova = request.form.get("nova")
+
+    if not nova:
+        return redirect("/usuarios")
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    senha_hash = generate_password_hash(nova)
+
+    cursor.execute("""
+        UPDATE usuarios SET senha=%s WHERE id=%s
+    """, (senha_hash, id))
+
+    conn.commit()
+
+    cursor.close()
+    devolver_conexao(conn)
+
+    return redirect("/usuarios")
