@@ -28,17 +28,6 @@ def devolver_conexao(conn):
         print("ERRO AO DEVOLVER CONEXÃO:", e)
 
 # 🔥 CRIAR BANCO
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS problemas (
-    id SERIAL PRIMARY KEY,
-    descricao TEXT,
-    foto TEXT,
-    data TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)
-""")
-
-# 🔥 ADICIONA ISSO AQUI
-cursor.execute("ALTER TABLE problemas ADD COLUMN IF NOT EXISTS usuario TEXT")
 def criar_banco():
     conn = conectar()
     if conn is None:
@@ -48,6 +37,25 @@ def criar_banco():
     cursor = conn.cursor()
 
     try:
+        # ================= 🚨 PROBLEMAS =================
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS problemas (
+            id SERIAL PRIMARY KEY,
+            descricao TEXT,
+            foto TEXT,
+            data TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            usuario TEXT
+        )
+        """)
+
+        conn.commit()
+
+    except Exception as e:
+        print("ERRO AO CRIAR TABELAS:", e)
+
+    finally:
+        cursor.close()
+        devolver_conexao(conn)
         # ================= 🚗 VEÍCULOS =================
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS veiculos (
