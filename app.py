@@ -122,39 +122,49 @@ def problemas():
             foto = request.files.get("foto")
             usuario = session.get("user")
 
-            nome_arquivo = ""
+            if not foto:
+                return "Nenhuma imagem enviada"
 
-            if foto:
-                os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+            # 🔥 BLOQUEIA ARQUIVOS INVÁLIDOS
+            if not foto.filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+                return "Envie apenas imagens (jpg, png)"
 
-                nome_arquivo = secure_filename(f"{datetime.now().timestamp()}_{foto.filename}")
-                caminho = os.path.join(UPLOAD_FOLDER, nome_arquivo)
+            os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-                foto.save(caminho)
+            nome_arquivo = secure_filename(f"{datetime.now().timestamp()}_{foto.filename}")
+            caminho = os.path.join(UPLOAD_FOLDER, nome_arquivo)
 
-                # 🔥 ESCREVER NA IMAGEM
-                try:
-                    img = Image.open(caminho)
-                    draw = ImageDraw.Draw(img)
+            foto.save(caminho)
 
-                    texto = f"{usuario} | {datetime.now().strftime('%d/%m/%Y %H:%M')}"
+            # 🔥 PROCESSA IMAGEM COM SEGURANÇA
+            try:
+                img = Image.open(caminho)
+                img.verify()  # valida imagem
 
-                    largura, altura = img.size
+                img = Image.open(caminho)  # reabre
+                draw = ImageDraw.Draw(img)
 
-                    x = 10
-                    y = altura - 40
+                texto = f"{usuario} | {datetime.now().strftime('%d/%m/%Y %H:%M')}"
 
-                    draw.rectangle(
-                        [(x - 5, y - 5), (x + 350, y + 25)],
-                        fill=(0, 0, 0)
-                    )
+                largura, altura = img.size
 
-                    draw.text((x, y), texto, fill=(255, 255, 255))
+                x = 10
+                y = altura - 40
 
-                    img.save(caminho)
+                # fundo preto
+                draw.rectangle(
+                    [(x - 5, y - 5), (x + 350, y + 25)],
+                    fill=(0, 0, 0)
+                )
 
-                except Exception as e:
-                    return f"ERRO IMAGEM: {str(e)}"
+                # texto branco
+                draw.text((x, y), texto, fill=(255, 255, 255))
+
+                img.save(caminho)
+
+            except Exception as e:
+                print("Imagem inválida:", e)
+                return "Arquivo enviado não é uma imagem válida"
 
             conn = conectar()
             cursor = conn.cursor()
@@ -171,7 +181,7 @@ def problemas():
             return redirect("/problemas")
 
         except Exception as e:
-            return f"ERRO GERAL: {str(e)}"
+            return f"ERRO: {str(e)}"
 
     return layout("""
         <h2>🚨 Registrar Problema</h2>
