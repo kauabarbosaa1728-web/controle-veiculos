@@ -134,32 +134,29 @@ def problemas():
             # 🔥 ESCREVER NA IMAGEM
             try:
                 img = Image.open(caminho)
-draw = ImageDraw.Draw(img)
+                draw = ImageDraw.Draw(img)
 
-texto = f"{usuario} | {datetime.now().strftime('%d/%m/%Y %H:%M')}"
+                texto = f"{usuario} | {datetime.now().strftime('%d/%m/%Y %H:%M')}"
 
-# 🔥 TAMANHO DA IMAGEM
-largura, altura = img.size
+                largura, altura = img.size
 
-# 🔥 TAMANHO DO TEXTO
-bbox = draw.textbbox((0, 0), texto)
-texto_largura = bbox[2] - bbox[0]
-texto_altura = bbox[3] - bbox[1]
+                bbox = draw.textbbox((0, 0), texto)
+                texto_largura = bbox[2] - bbox[0]
+                texto_altura = bbox[3] - bbox[1]
 
-# 🔥 POSIÇÃO (embaixo com margem)
-x = 10
-y = altura - texto_altura - 15
+                x = 10
+                y = altura - texto_altura - 15
 
-# 🔥 FUNDO PRETO
-draw.rectangle(
-    [(x - 5, y - 5), (x + texto_largura + 5, y + texto_altura + 5)],
-    fill=(0, 0, 0)
-)
+                # fundo preto
+                draw.rectangle(
+                    [(x - 5, y - 5), (x + texto_largura + 5, y + texto_altura + 5)],
+                    fill=(0, 0, 0)
+                )
 
-# 🔥 TEXTO BRANCO
-draw.text((x, y), texto, fill=(255, 255, 255))
+                # texto branco
+                draw.text((x, y), texto, fill=(255, 255, 255))
 
-img.save(caminho)
+                img.save(caminho)
 
             except Exception as e:
                 print("Erro imagem:", e)
@@ -186,40 +183,6 @@ img.save(caminho)
             <button>Enviar</button>
         </form>
     """)
-def problemas():
-    if session.get("pode_problemas") != 1 and session.get("cargo") != "admin":
-        return "Acesso negado"
-
-    if request.method == "POST":
-        descricao = request.form.get("descricao")
-        foto = request.files.get("foto")
-
-        nome_arquivo = ""
-
-        if foto:
-            os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-            nome_arquivo = secure_filename(f"{datetime.now().timestamp()}_{foto.filename}")
-            caminho = os.path.join(UPLOAD_FOLDER, nome_arquivo)
-            foto.save(caminho)
-
-        conn = conectar()
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO problemas (descricao, foto) VALUES (%s, %s)", (descricao, nome_arquivo))
-        conn.commit()
-        cursor.close()
-        devolver_conexao(conn)
-
-        return redirect("/problemas")
-
-    return layout("""
-        <h2>🚨 Registrar Problema</h2>
-        <form method="POST" enctype="multipart/form-data">
-            <input type="file" name="foto" required><br><br>
-            <textarea name="descricao" required></textarea><br><br>
-            <button>Enviar</button>
-        </form>
-    """)
-
 # ================= 📸 VER PROBLEMAS =================
 @app.route("/ver_problemas")
 def ver_problemas():
