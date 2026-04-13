@@ -109,7 +109,67 @@ def ping():
     return "ok", 200
 
 # ================= 🚨 PROBLEMAS =================
+from PIL import Image, ImageDraw
+
 @app.route("/problemas", methods=["GET", "POST"])
+def problemas():
+    if session.get("pode_problemas") != 1 and session.get("cargo") != "admin":
+        return "Acesso negado"
+
+    if request.method == "POST":
+        descricao = request.form.get("descricao")
+        foto = request.files.get("foto")
+        usuario = session.get("user")
+
+        nome_arquivo = ""
+
+        if foto:
+            os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+            nome_arquivo = secure_filename(f"{datetime.now().timestamp()}_{foto.filename}")
+            caminho = os.path.join(UPLOAD_FOLDER, nome_arquivo)
+
+            foto.save(caminho)
+
+            # 🔥 ESCREVER NA IMAGEM
+            try:
+                img = Image.open(caminho)
+                draw = ImageDraw.Draw(img)
+
+                texto = f"{usuario} - {datetime.now().strftime('%d/%m/%Y %H:%M')}"
+
+                largura, altura = img.size
+                posicao = (10, altura - 30)
+
+                draw.text(posicao, texto, fill="white")
+
+                img.save(caminho)
+
+            except Exception as e:
+                print("Erro imagem:", e)
+
+        conn = conectar()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        INSERT INTO problemas (descricao, foto, usuario)
+        VALUES (%s, %s, %s)
+        """, (descricao, nome_arquivo, usuario))
+
+        conn.commit()
+        cursor.close()
+        devolver_conexao(conn)
+
+        return redirect("/problemas")
+
+    return layout("""
+        <h2>🚨 Registrar Problema</h2>
+        <form method="POST" enctype="multipart/form-data">
+            <input type="file" name="foto" required><br><br>
+            <textarea name="descricao" required></textarea><br><br>
+            <button>Enviar</button>
+        </form>
+    """)
 def problemas():
     if session.get("pode_problemas") != 1 and session.get("cargo") != "admin":
         return "Acesso negado"
