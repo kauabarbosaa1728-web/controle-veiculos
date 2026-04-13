@@ -15,7 +15,7 @@ connection_pool = pool.SimpleConnectionPool(
 def conectar():
     try:
         return connection_pool.getconn()
-    except Exception as e:
+  except Exception as e:
         print("ERRO AO CONECTAR:", e)
         return None
 
