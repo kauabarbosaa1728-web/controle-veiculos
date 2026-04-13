@@ -15,7 +15,7 @@ connection_pool = pool.SimpleConnectionPool(
 def conectar():
     try:
         return connection_pool.getconn()
-  except Exception as e:
+    except Exception as e:
         print("ERRO AO CONECTAR:", e)
         return None
 
@@ -37,34 +37,6 @@ def criar_banco():
     cursor = conn.cursor()
 
     try:
-      def criar_banco():
-    conn = conectar()
-    if conn is None:
-        print("SEM CONEXÃO COM BANCO")
-        return
-
-    cursor = conn.cursor()
-
-    try:
-        # ================= 🚨 PROBLEMAS =================
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS problemas (
-            id SERIAL PRIMARY KEY,
-            descricao TEXT,
-            foto TEXT,
-            data TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            usuario TEXT
-        )
-        """)
-
-        conn.commit()
-
-    except Exception as e:
-        print("ERRO AO CRIAR TABELAS:", e)
-
-    finally:
-        cursor.close()
-        devolver_conexao(conn)
         # ================= 🚗 VEÍCULOS =================
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS veiculos (
@@ -94,7 +66,8 @@ def criar_banco():
             id SERIAL PRIMARY KEY,
             descricao TEXT,
             foto TEXT,
-            data TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            data TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            usuario TEXT
         )
         """)
 
@@ -122,7 +95,6 @@ def criar_banco():
         cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_manutencoes INTEGER DEFAULT 1")
         cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_dashboard INTEGER DEFAULT 1")
         cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_usuarios INTEGER DEFAULT 0")
-
         cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_problemas INTEGER DEFAULT 0")
         cursor.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pode_ver_problemas INTEGER DEFAULT 0")
 
