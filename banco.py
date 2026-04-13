@@ -37,6 +37,15 @@ def criar_banco():
     cursor = conn.cursor()
 
     try:
+      def criar_banco():
+    conn = conectar()
+    if conn is None:
+        print("SEM CONEXÃO COM BANCO")
+        return
+
+    cursor = conn.cursor()
+
+    try:
         # ================= 🚨 PROBLEMAS =================
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS problemas (
