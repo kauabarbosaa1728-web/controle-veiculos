@@ -117,60 +117,61 @@ def problemas():
         return "Acesso negado"
 
     if request.method == "POST":
-        descricao = request.form.get("descricao")
-        foto = request.files.get("foto")
-        usuario = session.get("user")
+        try:
+            descricao = request.form.get("descricao")
+            foto = request.files.get("foto")
+            usuario = session.get("user")
 
-        nome_arquivo = ""
+            nome_arquivo = ""
 
-        if foto:
-            os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+            if foto:
+                os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-            nome_arquivo = secure_filename(f"{datetime.now().timestamp()}_{foto.filename}")
-            caminho = os.path.join(UPLOAD_FOLDER, nome_arquivo)
+                nome_arquivo = secure_filename(f"{datetime.now().timestamp()}_{foto.filename}")
+                caminho = os.path.join(UPLOAD_FOLDER, nome_arquivo)
 
-            foto.save(caminho)
+                foto.save(caminho)
 
-            # 🔥 ESCREVER NA IMAGEM (VERSÃO SEGURA)
-            try:
-                img = Image.open(caminho)
-                draw = ImageDraw.Draw(img)
+                # 🔥 ESCREVER NA IMAGEM
+                try:
+                    img = Image.open(caminho)
+                    draw = ImageDraw.Draw(img)
 
-                texto = f"{usuario} | {datetime.now().strftime('%d/%m/%Y %H:%M')}"
+                    texto = f"{usuario} | {datetime.now().strftime('%d/%m/%Y %H:%M')}"
 
-                largura, altura = img.size
+                    largura, altura = img.size
 
-                # posição fixa (evita erro)
-                x = 10
-                y = altura - 40
+                    x = 10
+                    y = altura - 40
 
-                # fundo preto fixo
-                draw.rectangle(
-                    [(x - 5, y - 5), (x + 350, y + 25)],
-                    fill=(0, 0, 0)
-                )
+                    draw.rectangle(
+                        [(x - 5, y - 5), (x + 350, y + 25)],
+                        fill=(0, 0, 0)
+                    )
 
-                # texto branco
-                draw.text((x, y), texto, fill=(255, 255, 255))
+                    draw.text((x, y), texto, fill=(255, 255, 255))
 
-                img.save(caminho)
+                    img.save(caminho)
 
-            except Exception as e:
-                print("Erro imagem:", e)
+                except Exception as e:
+                    return f"ERRO IMAGEM: {str(e)}"
 
-        conn = conectar()
-        cursor = conn.cursor()
+            conn = conectar()
+            cursor = conn.cursor()
 
-        cursor.execute("""
-        INSERT INTO problemas (descricao, foto, usuario)
-        VALUES (%s, %s, %s)
-        """, (descricao, nome_arquivo, usuario))
+            cursor.execute("""
+            INSERT INTO problemas (descricao, foto, usuario)
+            VALUES (%s, %s, %s)
+            """, (descricao, nome_arquivo, usuario))
 
-        conn.commit()
-        cursor.close()
-        devolver_conexao(conn)
+            conn.commit()
+            cursor.close()
+            devolver_conexao(conn)
 
-        return redirect("/problemas")
+            return redirect("/problemas")
+
+        except Exception as e:
+            return f"ERRO GERAL: {str(e)}"
 
     return layout("""
         <h2>🚨 Registrar Problema</h2>
