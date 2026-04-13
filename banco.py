@@ -66,10 +66,12 @@ def criar_banco():
             id SERIAL PRIMARY KEY,
             descricao TEXT,
             foto TEXT,
-            data TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            usuario TEXT
+            data TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """)
+
+        # 🔥 GARANTE A COLUNA usuario (ESSA LINHA RESOLVE SEU ERRO)
+        cursor.execute("ALTER TABLE problemas ADD COLUMN IF NOT EXISTS usuario TEXT")
 
         # ================= 👤 USUÁRIOS =================
         cursor.execute("""
