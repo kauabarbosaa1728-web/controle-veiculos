@@ -134,16 +134,32 @@ def problemas():
             # 🔥 ESCREVER NA IMAGEM
             try:
                 img = Image.open(caminho)
-                draw = ImageDraw.Draw(img)
+draw = ImageDraw.Draw(img)
 
-                texto = f"{usuario} - {datetime.now().strftime('%d/%m/%Y %H:%M')}"
+texto = f"{usuario} | {datetime.now().strftime('%d/%m/%Y %H:%M')}"
 
-                largura, altura = img.size
-                posicao = (10, altura - 30)
+# 🔥 TAMANHO DA IMAGEM
+largura, altura = img.size
 
-                draw.text(posicao, texto, fill="white")
+# 🔥 TAMANHO DO TEXTO
+bbox = draw.textbbox((0, 0), texto)
+texto_largura = bbox[2] - bbox[0]
+texto_altura = bbox[3] - bbox[1]
 
-                img.save(caminho)
+# 🔥 POSIÇÃO (embaixo com margem)
+x = 10
+y = altura - texto_altura - 15
+
+# 🔥 FUNDO PRETO
+draw.rectangle(
+    [(x - 5, y - 5), (x + texto_largura + 5, y + texto_altura + 5)],
+    fill=(0, 0, 0)
+)
+
+# 🔥 TEXTO BRANCO
+draw.text((x, y), texto, fill=(255, 255, 255))
+
+img.save(caminho)
 
             except Exception as e:
                 print("Erro imagem:", e)
