@@ -125,9 +125,9 @@ def problemas():
             if not foto:
                 return "Nenhuma imagem enviada"
 
-            # 🔥 BLOQUEIA ARQUIVOS INVÁLIDOS
-            if not foto.filename.lower().endswith(('.png', '.jpg', '.jpeg')):
-                return "Envie apenas imagens (jpg, png)"
+            # 🔥 PERMITE MAIS FORMATOS (CELULAR)
+            if not foto.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
+                return "Envie apenas imagens (jpg, png, webp)"
 
             os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -138,10 +138,7 @@ def problemas():
 
             # 🔥 PROCESSA IMAGEM COM SEGURANÇA
             try:
-                img = Image.open(caminho)
-                img.verify()  # valida imagem
-
-                img = Image.open(caminho)  # reabre
+                img = Image.open(caminho).convert("RGB")  # 🔥 força padrão compatível
                 draw = ImageDraw.Draw(img)
 
                 texto = f"{usuario} | {datetime.now().strftime('%d/%m/%Y %H:%M')}"
@@ -153,14 +150,14 @@ def problemas():
 
                 # fundo preto
                 draw.rectangle(
-                    [(x - 5, y - 5), (x + 350, y + 25)],
+                    [(x - 5, y - 5), (x + 400, y + 30)],
                     fill=(0, 0, 0)
                 )
 
                 # texto branco
                 draw.text((x, y), texto, fill=(255, 255, 255))
 
-                img.save(caminho)
+                img.save(caminho, "JPEG", quality=90)
 
             except Exception as e:
                 print("Imagem inválida:", e)
