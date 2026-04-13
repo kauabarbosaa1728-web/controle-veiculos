@@ -131,7 +131,7 @@ def problemas():
 
             foto.save(caminho)
 
-            # 🔥 ESCREVER NA IMAGEM
+            # 🔥 ESCREVER NA IMAGEM (VERSÃO SEGURA)
             try:
                 img = Image.open(caminho)
                 draw = ImageDraw.Draw(img)
@@ -140,16 +140,13 @@ def problemas():
 
                 largura, altura = img.size
 
-                bbox = draw.textbbox((0, 0), texto)
-                texto_largura = bbox[2] - bbox[0]
-                texto_altura = bbox[3] - bbox[1]
-
+                # posição fixa (evita erro)
                 x = 10
-                y = altura - texto_altura - 15
+                y = altura - 40
 
-                # fundo preto
+                # fundo preto fixo
                 draw.rectangle(
-                    [(x - 5, y - 5), (x + texto_largura + 5, y + texto_altura + 5)],
+                    [(x - 5, y - 5), (x + 350, y + 25)],
                     fill=(0, 0, 0)
                 )
 
