@@ -16,6 +16,7 @@ UPLOAD_FOLDER = os.path.join("static", "uploads")
 
 # 🔥 CRIA BANCO
 criar_banco()
+cursor.execute("ALTER TABLE problemas ADD COLUMN IF NOT EXISTS usuario TEXT")
 
 app.register_blueprint(veiculos_bp)
 app.register_blueprint(manutencoes_bp)
