@@ -28,6 +28,7 @@ def devolver_conexao(conn):
         print("ERRO AO DEVOLVER CONEXÃO:", e)
 
 # 🔥 CRIAR BANCO
+cursor.execute("ALTER TABLE problemas ADD COLUMN IF NOT EXISTS usuario TEXT")
 def criar_banco():
     conn = conectar()
     if conn is None:
