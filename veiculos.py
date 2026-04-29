@@ -1,4 +1,4 @@
-from flask import Blueprint, request, redirect
+from flask import Blueprint, request, redirect, session
 from banco import conectar, devolver_conexao
 from layout import layout
 
@@ -6,29 +6,45 @@ veiculos_bp = Blueprint("veiculos_bp", __name__)
 
 @veiculos_bp.route("/veiculos", methods=["GET", "POST"])
 def veiculos_page():
+
+    # 🔒 PROTEÇÃO LOGIN
+    if "user" not in session:
+        return redirect("/")
+
+    empresa_id = session.get("empresa_id")
+
     conn = conectar()
     cursor = conn.cursor()
 
-    # CADASTRAR
+    # 🔥 CADASTRAR
     if request.method == "POST":
         placa = request.form.get("placa")
         nome = request.form.get("nome")
 
-        cursor.execute(
-            "INSERT INTO veiculos (placa, nome) VALUES (%s, %s)",
-            (placa, nome)
-        )
-        conn.commit()
+        cursor.execute("""
+        INSERT INTO veiculos (placa, nome, empresa_id)
+        VALUES (%s, %s, %s)
+        """, (placa, nome, empresa_id))
 
+        conn.commit()
         return redirect("/veiculos")
 
-    # LISTAR
-    cursor.execute("SELECT placa, nome FROM veiculos")
+    # 🔥 LISTAR (ISOLADO POR EMPRESA)
+    cursor.execute("""
+    SELECT placa, nome
+    FROM veiculos
+    WHERE empresa_id=%s
+    """, (empresa_id,))
+
     dados = cursor.fetchall()
 
     lista_html = ""
     for v in dados:
-        lista_html += f"<li>🚗 {v[0]} - {v[1]}</li>"
+        lista_html += f"""
+        <li style="margin:8px 0;">
+            🚗 <b>{v[0]}</b> - {v[1]}
+        </li>
+        """
 
     cursor.close()
     devolver_conexao(conn)
