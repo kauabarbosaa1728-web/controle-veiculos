@@ -1,4 +1,4 @@
-from flask import Blueprint, request, redirect
+from flask import Blueprint, request, redirect, session
 from banco import conectar, devolver_conexao
 from layout import layout
 from datetime import datetime
@@ -7,10 +7,17 @@ manutencoes_bp = Blueprint("manutencoes_bp", __name__)
 
 @manutencoes_bp.route("/manutencoes", methods=["GET", "POST"])
 def manutencoes_page():
+
+    # 🔒 PROTEÇÃO
+    if "user" not in session:
+        return redirect("/")
+
+    empresa_id = session.get("empresa_id")
+
     conn = conectar()
     cursor = conn.cursor()
 
-    # CADASTRAR
+    # 🔥 CADASTRAR
     if request.method == "POST":
         data = request.form.get("data")
         valor = request.form.get("valor")
@@ -22,28 +29,33 @@ def manutencoes_page():
 
         cursor.execute("""
         INSERT INTO manutencoes 
-        (data, valor, veiculo_id, oficina, descricao, quantidade, validade)
-        VALUES (%s,%s,%s,%s,%s,%s,%s)
-        """, (data, valor, veiculo_id, oficina, descricao, quantidade, validade))
+        (data, valor, veiculo_id, oficina, descricao, quantidade, validade, empresa_id)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+        """, (data, valor, veiculo_id, oficina, descricao, quantidade, validade, empresa_id))
 
         conn.commit()
         return redirect("/manutencoes")
 
-    # PEGAR VEÍCULOS
-    cursor.execute("SELECT id, placa FROM veiculos")
+    # 🔥 PEGAR VEÍCULOS (ISOLADO)
+    cursor.execute("""
+    SELECT id, placa 
+    FROM veiculos 
+    WHERE empresa_id=%s
+    """, (empresa_id,))
     veiculos = cursor.fetchall()
 
     opcoes = ""
     for v in veiculos:
         opcoes += f"<option value='{v[0]}'>{v[1]}</option>"
 
-    # LISTAR MANUTENÇÕES
+    # 🔥 LISTAR MANUTENÇÕES (ISOLADO)
     cursor.execute("""
     SELECT m.data, m.valor, v.placa, m.oficina, m.descricao, m.quantidade, m.validade
     FROM manutencoes m
     JOIN veiculos v ON m.veiculo_id = v.id
+    WHERE m.empresa_id=%s
     ORDER BY m.id DESC
-    """)
+    """, (empresa_id,))
 
     dados = cursor.fetchall()
 
@@ -53,17 +65,17 @@ def manutencoes_page():
     for d in dados:
         validade = d[6]
 
-        cor = "#22c55e"  # verde
+        cor = "#22c55e"
         status = "OK"
 
         if validade:
             dias = (validade - hoje).days
 
             if dias < 0:
-                cor = "#ef4444"  # vermelho
+                cor = "#ef4444"
                 status = "VENCIDO"
             elif dias <= 7:
-                cor = "#facc15"  # amarelo
+                cor = "#facc15"
                 status = "PRÓXIMO"
 
         tabela += f"""
