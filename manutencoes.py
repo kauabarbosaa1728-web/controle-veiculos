@@ -1,6 +1,6 @@
 from flask import Blueprint, request, redirect, session
 from banco import conectar, devolver_conexao
-from layout import layout
+from layout import container
 from datetime import datetime
 
 manutencoes_bp = Blueprint("manutencoes_bp", __name__)
@@ -8,7 +8,6 @@ manutencoes_bp = Blueprint("manutencoes_bp", __name__)
 @manutencoes_bp.route("/manutencoes", methods=["GET", "POST"])
 def manutencoes_page():
 
-    # 🔒 PROTEÇÃO
     if "user" not in session:
         return redirect("/")
 
@@ -17,7 +16,7 @@ def manutencoes_page():
     conn = conectar()
     cursor = conn.cursor()
 
-    # 🔥 CADASTRAR
+    # CADASTRAR
     if request.method == "POST":
         data = request.form.get("data")
         valor = request.form.get("valor")
@@ -36,7 +35,7 @@ def manutencoes_page():
         conn.commit()
         return redirect("/manutencoes")
 
-    # 🔥 PEGAR VEÍCULOS (ISOLADO)
+    # PEGAR VEÍCULOS
     cursor.execute("""
     SELECT id, placa 
     FROM veiculos 
@@ -48,7 +47,7 @@ def manutencoes_page():
     for v in veiculos:
         opcoes += f"<option value='{v[0]}'>{v[1]}</option>"
 
-    # 🔥 LISTAR MANUTENÇÕES (ISOLADO)
+    # LISTAR MANUTENÇÕES
     cursor.execute("""
     SELECT m.data, m.valor, v.placa, m.oficina, m.descricao, m.quantidade, m.validade
     FROM manutencoes m
@@ -94,7 +93,7 @@ def manutencoes_page():
     cursor.close()
     devolver_conexao(conn)
 
-    return layout(f"""
+    return container(f"""
         <h2>🔧 Manutenções</h2>
 
         <form method="POST">
