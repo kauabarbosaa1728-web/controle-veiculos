@@ -1,13 +1,12 @@
 from flask import Blueprint, request, redirect, session
 from banco import conectar, devolver_conexao
-from layout import layout
+from layout import container
 
 veiculos_bp = Blueprint("veiculos_bp", __name__)
 
 @veiculos_bp.route("/veiculos", methods=["GET", "POST"])
 def veiculos_page():
 
-    # 🔒 PROTEÇÃO LOGIN
     if "user" not in session:
         return redirect("/")
 
@@ -16,7 +15,6 @@ def veiculos_page():
     conn = conectar()
     cursor = conn.cursor()
 
-    # 🔥 CADASTRAR
     if request.method == "POST":
         placa = request.form.get("placa")
         nome = request.form.get("nome")
@@ -29,7 +27,6 @@ def veiculos_page():
         conn.commit()
         return redirect("/veiculos")
 
-    # 🔥 LISTAR (ISOLADO POR EMPRESA)
     cursor.execute("""
     SELECT placa, nome
     FROM veiculos
@@ -49,7 +46,7 @@ def veiculos_page():
     cursor.close()
     devolver_conexao(conn)
 
-    return layout(f"""
+    return container(f"""
         <h2>🚗 Veículos</h2>
 
         <form method="POST">
